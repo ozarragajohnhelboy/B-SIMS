@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from core.utils import log_activity
 from ..serializers import UserSerializer, LoginSerializer
 
 User = get_user_model()
@@ -15,6 +16,15 @@ def login_view(request):
     if serializer.is_valid():
         user = serializer.validated_data['user']
         refresh = RefreshToken.for_user(user)
+        
+        log_activity(
+            user=user,
+            action='login',
+            description=f'User logged in successfully',
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+        
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),

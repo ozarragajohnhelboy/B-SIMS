@@ -104,6 +104,86 @@ const ResidentsManagement = () => {
     }
   };
 
+  const handleExport = () => {
+    const csvContent = [
+      ['ID', 'First Name', 'Last Name', 'Middle Name', 'Suffix', 'Birth Date', 'Gender', 'Marital Status', 'Occupation', 'Monthly Income', 'Household', 'Relationship to Head', 'Emergency Contact Name', 'Emergency Contact Number', 'Is Voter', 'Is PWD', 'Is Senior Citizen'],
+      ...residents.map(resident => [
+        resident.id,
+        resident.first_name,
+        resident.last_name,
+        resident.middle_name || '',
+        resident.suffix || '',
+        resident.birth_date,
+        resident.gender,
+        resident.marital_status,
+        resident.occupation || '',
+        resident.monthly_income || '',
+        resident.household?.household_number || '',
+        resident.relationship_to_head,
+        resident.emergency_contact_name || '',
+        resident.emergency_contact_number || '',
+        resident.is_voter ? 'Yes' : 'No',
+        resident.is_pwd ? 'Yes' : 'No',
+        resident.is_senior_citizen ? 'Yes' : 'No'
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `residents_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImport = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const csv = e.target.result;
+        const lines = csv.split('\n');
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        
+        const residentsData = lines.slice(1).filter(line => line.trim()).map(line => {
+          const values = line.split(',').map(v => v.replace(/"/g, '').trim());
+          const resident = {};
+          headers.forEach((header, index) => {
+            resident[header.toLowerCase().replace(/\s+/g, '_')] = values[index] || '';
+          });
+          return resident;
+        });
+
+        for (const residentData of residentsData) {
+          if (residentData.first_name && residentData.last_name) {
+            const household = households.find(h => h.household_number === residentData.household);
+            await residentsAPI.createResident({
+              ...residentData,
+              household: household?.id || '',
+              monthly_income: residentData.monthly_income ? parseFloat(residentData.monthly_income) : 0,
+              is_voter: residentData.is_voter === 'Yes',
+              is_pwd: residentData.is_pwd === 'Yes',
+              is_senior_citizen: residentData.is_senior_citizen === 'Yes'
+            });
+          }
+        }
+        
+        await fetchData();
+        alert('Residents imported successfully!');
+      } catch (error) {
+        console.error('Error importing residents:', error);
+        alert('Error importing residents. Please check the file format.');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
   const resetForm = () => {
     setFormData({
       first_name: '',
@@ -150,12 +230,26 @@ const ResidentsManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Residents Management</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
-        >
-          Add New Resident
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => document.getElementById('importFile').click()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+          >
+            Import CSV
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors duration-200"
+          >
+            Add New Resident
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
@@ -448,6 +542,14 @@ const ResidentsManagement = () => {
           </div>
         </div>
       )}
+      
+      <input
+        id="importFile"
+        type="file"
+        accept=".csv"
+        onChange={handleImport}
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db.models import Q, Count
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from core.utils import log_activity
 from ..models import Announcement, AnnouncementView
 from ..serializers import AnnouncementListSerializer, AnnouncementDetailSerializer, AnnouncementCreateSerializer
 
@@ -36,7 +37,15 @@ class AnnouncementListView(generics.ListCreateAPIView):
         return queryset.order_by('-is_pinned', '-publish_date', '-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        announcement = serializer.save(created_by=self.request.user)
+        log_activity(
+            user=self.request.user,
+            action='create',
+            description=f'Created new announcement: {announcement.title} ({announcement.category.name})',
+            content_object=announcement,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
 
 
 class AnnouncementDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -50,7 +59,25 @@ class AnnouncementDetailView(generics.RetrieveUpdateDestroyAPIView):
         return AnnouncementDetailSerializer
 
     def perform_update(self, serializer):
-        serializer.save(updated_by=self.request.user)
+        announcement = serializer.save(updated_by=self.request.user)
+        log_activity(
+            user=self.request.user,
+            action='update',
+            description=f'Updated announcement: {announcement.title} ({announcement.category.name})',
+            content_object=announcement,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+
+    def perform_destroy(self, instance):
+        log_activity(
+            user=self.request.user,
+            action='delete',
+            description=f'Deleted announcement: {instance.title} ({instance.category.name})',
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+        instance.delete()
 
 
 @api_view(['POST'])

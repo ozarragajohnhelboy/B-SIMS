@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { financialAPI } from '../services/api';
+import { financialAPI, logActivity } from '../services/api';
 
 const FinancialManagement = () => {
   const [activeTab, setActiveTab] = useState('income');
@@ -294,6 +294,39 @@ const IncomeManagement = () => {
     }
   };
 
+  const handleExportIncome = () => {
+    const csvContent = [
+      ['ID', 'Income Number', 'Category', 'Income Type', 'Description', 'Amount', 'Source', 'Reference Number', 'Date Received', 'Recorded By'],
+      ...incomes.map(income => [
+        income.id,
+        income.income_number || '',
+        income.category?.name || '',
+        income.income_type,
+        income.description,
+        income.amount,
+        income.source,
+        income.reference_number || '',
+        income.date_received,
+        income.recorded_by?.first_name + ' ' + income.recorded_by?.last_name || ''
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `income_records_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    logActivity('export', `Exported income records (${incomes.length} records)`, {
+      record_count: incomes.length,
+      export_type: 'income_records'
+    });
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -302,12 +335,20 @@ const IncomeManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900">Income Records</h3>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Add Income
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleExportIncome}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Add Income
+          </button>
+        </div>
       </div>
       
       <div className="flex justify-between items-center">
@@ -645,6 +686,39 @@ const ExpenseManagement = () => {
     }
   };
 
+  const handleExportExpense = () => {
+    const csvContent = [
+      ['ID', 'Expense Number', 'Category', 'Expense Type', 'Description', 'Amount', 'Vendor', 'Reference Number', 'Date Paid', 'Recorded By'],
+      ...expenses.map(expense => [
+        expense.id,
+        expense.expense_number || '',
+        expense.category?.name || '',
+        expense.expense_type,
+        expense.description,
+        expense.amount,
+        expense.vendor,
+        expense.reference_number || '',
+        expense.date_paid,
+        expense.recorded_by?.first_name + ' ' + expense.recorded_by?.last_name || ''
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `expense_records_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    logActivity('export', `Exported expense records (${expenses.length} records)`, {
+      record_count: expenses.length,
+      export_type: 'expense_records'
+    });
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -653,12 +727,20 @@ const ExpenseManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900">Expense Records</h3>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-        >
-          Add Expense
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleExportExpense}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Add Expense
+          </button>
+        </div>
       </div>
       
       <div className="flex justify-between items-center">

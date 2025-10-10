@@ -97,6 +97,34 @@ const ProjectManagement = () => {
     }
   };
 
+  const handleExportProjects = () => {
+    const csvContent = [
+      ['ID', 'Project Title', 'Project Type', 'Description', 'Budget Allocated', 'Progress', 'Start Date', 'End Date', 'Status', 'Project Manager'],
+      ...projects.map(project => [
+        project.id,
+        project.title,
+        project.project_type?.name || '',
+        project.description,
+        project.budget_allocated,
+        project.progress,
+        project.start_date,
+        project.end_date || '',
+        project.status,
+        project.project_manager?.first_name + ' ' + project.project_manager?.last_name || ''
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `projects_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredProjects = projects.filter(project =>
     project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -277,12 +305,20 @@ const ProjectManagement = () => {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">Project Management</h3>
-                <button
-                  onClick={() => setShowProjectForm(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Add Project
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleExportProjects}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                  >
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={() => setShowProjectForm(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Add Project
+                  </button>
+                </div>
               </div>
               
               <div className="flex justify-between items-center">

@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from core.utils import log_activity
 from ..models import Resident
 from ..serializers import ResidentSerializer, ResidentCreateSerializer
 
@@ -17,7 +18,40 @@ class ResidentListView(generics.ListCreateAPIView):
             return ResidentCreateSerializer
         return ResidentSerializer
 
+    def perform_create(self, serializer):
+        resident = serializer.save()
+        log_activity(
+            user=self.request.user,
+            action='create',
+            description=f'Created new resident: {resident.first_name} {resident.last_name}',
+            content_object=resident,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+
 class ResidentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Resident.objects.all()
     serializer_class = ResidentSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_update(self, serializer):
+        resident = serializer.save()
+        log_activity(
+            user=self.request.user,
+            action='update',
+            description=f'Updated resident information: {resident.first_name} {resident.last_name}',
+            content_object=resident,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+
+    def perform_destroy(self, instance):
+        resident_name = f"{instance.first_name} {instance.last_name}"
+        log_activity(
+            user=self.request.user,
+            action='delete',
+            description=f'Deleted resident: {resident_name}',
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+        instance.delete()

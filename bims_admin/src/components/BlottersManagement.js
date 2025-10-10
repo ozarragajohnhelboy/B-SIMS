@@ -44,10 +44,15 @@ const BlottersManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const submitData = {
+        ...formData,
+        incident_date: new Date(formData.incident_date).toISOString()
+      };
+      
       if (editingBlotter) {
-        await blottersAPI.updateBlotter(editingBlotter.id, formData);
+        await blottersAPI.updateBlotter(editingBlotter.id, submitData);
       } else {
-        await blottersAPI.createBlotter(formData);
+        await blottersAPI.createBlotter(submitData);
       }
       await fetchData();
       setShowForm(false);
@@ -86,6 +91,37 @@ const BlottersManagement = () => {
         console.error('Error deleting blotter:', error);
       }
     }
+  };
+
+  const handleExport = () => {
+    const csvContent = [
+      ['ID', 'Complainant Name', 'Complainant Contact', 'Complainant Address', 'Respondent Name', 'Respondent Contact', 'Respondent Address', 'Incident Type', 'Incident Date', 'Status', 'Incident Location', 'Summary', 'Resolution'],
+      ...blotters.map(blotter => [
+        blotter.id,
+        blotter.complainant_name,
+        blotter.complainant_contact || '',
+        blotter.complainant_address,
+        blotter.respondent_name || '',
+        blotter.respondent_contact || '',
+        blotter.respondent_address || '',
+        blotter.incident_type,
+        blotter.incident_date,
+        blotter.status,
+        blotter.incident_location,
+        blotter.summary,
+        blotter.resolution || ''
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `blotters_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const resetForm = () => {
@@ -155,12 +191,20 @@ const BlottersManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900">Blotter Management</h1>
           <p className="text-gray-600 mt-1">Record and track incident reports</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium"
-        >
-          New Blotter Entry
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium"
+          >
+            New Blotter Entry
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

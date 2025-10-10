@@ -58,6 +58,16 @@ class DocumentRequestSerializer(serializers.ModelSerializer):
         read_only_fields = ['request_number', 'created_at', 'updated_at']
 
 
+class DocumentRequestCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentRequest
+        exclude = ['request_number', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'requested_by': {'required': False},
+            'approved_by': {'required': False}
+        }
+
+
 class BlotterSerializer(serializers.ModelSerializer):
     recorded_by_name = serializers.CharField(source='recorded_by.get_full_name', read_only=True)
     
@@ -65,3 +75,12 @@ class BlotterSerializer(serializers.ModelSerializer):
         model = Blotter
         fields = '__all__'
         read_only_fields = ['blotter_number', 'created_at', 'updated_at']
+
+
+class BlotterCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Blotter
+        exclude = ['blotter_number', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'recorded_by': {'required': False}
+        }

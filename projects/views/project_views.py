@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.db import models
+from core.utils import log_activity
 from ..models import Project
 from ..serializers import ProjectSerializer, ProjectCreateSerializer
 
@@ -24,13 +25,42 @@ class ProjectListView(generics.ListCreateAPIView):
         return ProjectSerializer
     
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user, project_manager=self.request.user)
+        project = serializer.save(created_by=self.request.user, project_manager=self.request.user)
+        log_activity(
+            user=self.request.user,
+            action='create',
+            description=f'Created new project: {project.title} (₱{project.budget_allocated:,.2f})',
+            content_object=project,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
 
 
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_update(self, serializer):
+        project = serializer.save()
+        log_activity(
+            user=self.request.user,
+            action='update',
+            description=f'Updated project: {project.title} (₱{project.budget_allocated:,.2f})',
+            content_object=project,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+
+    def perform_destroy(self, instance):
+        log_activity(
+            user=self.request.user,
+            action='delete',
+            description=f'Deleted project: {instance.title} (₱{instance.budget_allocated:,.2f})',
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+        instance.delete()
 
 
 @api_view(['GET'])

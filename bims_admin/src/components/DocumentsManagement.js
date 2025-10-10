@@ -46,10 +46,17 @@ const DocumentsManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const submitData = {
+        ...formData,
+        resident: parseInt(formData.resident),
+        document_type: parseInt(formData.document_type),
+        fee_paid: parseFloat(formData.fee_paid) || 0
+      };
+      
       if (editingRequest) {
-        await documentsAPI.updateDocumentRequest(editingRequest.id, formData);
+        await documentsAPI.updateDocumentRequest(editingRequest.id, submitData);
       } else {
-        await documentsAPI.createDocumentRequest(formData);
+        await documentsAPI.createDocumentRequest(submitData);
       }
       await fetchData();
       setShowForm(false);
@@ -82,6 +89,34 @@ const DocumentsManagement = () => {
         console.error('Error deleting document request:', error);
       }
     }
+  };
+
+  const handleExport = () => {
+    const csvContent = [
+      ['ID', 'Request Number', 'Resident Name', 'Document Type', 'Purpose', 'Status', 'Request Date', 'Approved Date', 'Released Date', 'Remarks'],
+      ...documentRequests.map(request => [
+        request.id,
+        request.request_number,
+        request.resident?.first_name + ' ' + request.resident?.last_name || '',
+        request.document_type?.name || '',
+        request.purpose,
+        request.status,
+        request.request_date,
+        request.approved_date || '',
+        request.released_date || '',
+        request.remarks || ''
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `documents_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const resetForm = () => {
@@ -133,12 +168,20 @@ const DocumentsManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900">Document Management</h1>
           <p className="text-gray-600 mt-1">Manage document requests and processing</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium"
-        >
-          New Document Request
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium"
+          >
+            New Document Request
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

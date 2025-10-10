@@ -1,7 +1,8 @@
 from rest_framework import generics, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from core.utils import log_activity
 from ..models import DocumentType, DocumentRequest
-from ..serializers import DocumentTypeSerializer, DocumentRequestSerializer
+from ..serializers import DocumentTypeSerializer, DocumentRequestSerializer, DocumentRequestCreateSerializer
 
 class DocumentTypeListView(generics.ListCreateAPIView):
     queryset = DocumentType.objects.filter(is_active=True)
@@ -17,7 +18,6 @@ class DocumentTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class DocumentRequestListView(generics.ListCreateAPIView):
     queryset = DocumentRequest.objects.all()
-    serializer_class = DocumentRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'document_type', 'resident']
@@ -25,10 +25,48 @@ class DocumentRequestListView(generics.ListCreateAPIView):
     ordering_fields = ['created_at', 'status']
     ordering = ['-created_at']
     
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return DocumentRequestCreateSerializer
+        return DocumentRequestSerializer
+    
     def perform_create(self, serializer):
-        serializer.save(requested_by=self.request.user)
+        document_request = serializer.save(requested_by=self.request.user)
+        log_activity(
+            user=self.request.user,
+            action='create',
+            description=f'Created new document request: {document_request.document_type.name} for {document_request.resident.first_name} {document_request.resident.last_name}',
+            content_object=document_request,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
 
 class DocumentRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DocumentRequest.objects.all()
-    serializer_class = DocumentRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return DocumentRequestCreateSerializer
+        return DocumentRequestSerializer
+
+    def perform_update(self, serializer):
+        document_request = serializer.save()
+        log_activity(
+            user=self.request.user,
+            action='update',
+            description=f'Updated document request: {document_request.document_type.name} for {document_request.resident.first_name} {document_request.resident.last_name}',
+            content_object=document_request,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+
+    def perform_destroy(self, instance):
+        log_activity(
+            user=self.request.user,
+            action='delete',
+            description=f'Deleted document request: {instance.document_type.name} for {instance.resident.first_name} {instance.resident.last_name}',
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+        instance.delete()

@@ -229,4 +229,27 @@ export const announcementsAPI = {
   sendNotification: (id, data) => api.post(`/announcements/templates/${id}/send/`, data),
 };
 
+export const coreAPI = {
+  getActivities: (params) => api.get('/core/activities/', { params }),
+  getRecentActivities: (limit = 10, dateFrom = null, dateTo = null) => {
+    const params = { limit };
+    if (dateFrom) params.date_from = dateFrom;
+    if (dateTo) params.date_to = dateTo;
+    return api.get(`/core/activities/recent/`, { params });
+  },
+  logActivity: (data) => api.post('/core/activities/', data),
+};
+
+export const logActivity = async (action, description, metadata = {}) => {
+  try {
+    await coreAPI.logActivity({
+      action,
+      description,
+      metadata
+    });
+  } catch (error) {
+    console.error('Failed to log activity:', error);
+  }
+};
+
 export default api;

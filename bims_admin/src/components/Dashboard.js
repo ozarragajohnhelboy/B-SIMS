@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { residentsAPI, documentsAPI, blottersAPI, announcementsAPI } from '../services/api';
+import { residentsAPI, documentsAPI, blottersAPI, announcementsAPI, coreAPI } from '../services/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -11,10 +11,16 @@ const Dashboard = () => {
     announcements: { total_announcements: 0, published_announcements: 0, draft_announcements: 0, featured_announcements: 0 },
   });
   const [loading, setLoading] = useState(true);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [dateFilter, setDateFilter] = useState({
+    from: '',
+    to: ''
+  });
 
   useEffect(() => {
     fetchStats();
-  }, []);
+    fetchRecentActivities();
+  }, [dateFilter]);
 
   const fetchStats = async () => {
     try {
@@ -35,6 +41,26 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchRecentActivities = async () => {
+    try {
+      const response = await coreAPI.getRecentActivities(20, dateFilter.from || null, dateFilter.to || null);
+      setRecentActivities(response.data);
+    } catch (error) {
+      console.error('Error fetching recent activities:', error);
+    }
+  };
+
+  const handleDateFilterChange = (field, value) => {
+    setDateFilter(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const clearDateFilter = () => {
+    setDateFilter({ from: '', to: '' });
   };
 
   if (loading) {
@@ -131,24 +157,59 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="text-sm text-gray-600">System initialized successfully</div>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+            <div className="flex items-center space-x-2">
+              <input
+                type="date"
+                value={dateFilter.from}
+                onChange={(e) => handleDateFilterChange('from', e.target.value)}
+                className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="From"
+              />
+              <span className="text-gray-400 text-xs">to</span>
+              <input
+                type="date"
+                value={dateFilter.to}
+                onChange={(e) => handleDateFilterChange('to', e.target.value)}
+                className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="To"
+              />
+              {(dateFilter.from || dateFilter.to) && (
+                <button
+                  onClick={clearDateFilter}
+                  className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <div className="text-sm text-gray-600">Database connected and operational</div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <div className="text-sm text-gray-600">Sample data loaded successfully</div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <div className="text-sm text-gray-600">All modules ready for use</div>
-            </div>
+          </div>
+          <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity, index) => (
+                <div key={activity.id} className="flex items-center space-x-3 py-1">
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                    activity.action === 'create' ? 'bg-green-500' :
+                    activity.action === 'update' ? 'bg-blue-500' :
+                    activity.action === 'delete' ? 'bg-red-500' :
+                    activity.action === 'export' ? 'bg-purple-500' :
+                    activity.action === 'login' ? 'bg-indigo-500' :
+                    'bg-gray-500'
+                  }`}></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-gray-900 truncate">{activity.description}</div>
+                    <div className="text-xs text-gray-500">
+                      {activity.user_name} • {activity.time_ago}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-gray-500 text-center py-4">
+                No activities found for the selected date range
+              </div>
+            )}
           </div>
         </div>
 

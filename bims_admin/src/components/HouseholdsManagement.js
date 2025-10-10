@@ -74,6 +74,70 @@ const HouseholdsManagement = () => {
     }
   };
 
+  const handleExport = () => {
+    const csvContent = [
+      ['ID', 'Household Number', 'Purok', 'Address', 'Contact Number'],
+      ...households.map(household => [
+        household.id,
+        household.household_number,
+        household.purok?.name || '',
+        household.address,
+        household.contact_number || ''
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `households_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImport = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const csv = e.target.result;
+        const lines = csv.split('\n');
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        
+        const householdsData = lines.slice(1).filter(line => line.trim()).map(line => {
+          const values = line.split(',').map(v => v.replace(/"/g, '').trim());
+          const household = {};
+          headers.forEach((header, index) => {
+            household[header.toLowerCase().replace(/\s+/g, '_')] = values[index] || '';
+          });
+          return household;
+        });
+
+        for (const householdData of householdsData) {
+          if (householdData.household_number && householdData.address) {
+            const purok = puroks.find(p => p.name === householdData.purok);
+            await householdsAPI.createHousehold({
+              ...householdData,
+              purok: purok?.id || ''
+            });
+          }
+        }
+        
+        await fetchData();
+        alert('Households imported successfully!');
+      } catch (error) {
+        console.error('Error importing households:', error);
+        alert('Error importing households. Please check the file format.');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
   const resetForm = () => {
     setFormData({
       purok: '',
@@ -109,12 +173,26 @@ const HouseholdsManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900">Households Management</h1>
           <p className="text-gray-600 mt-1">Manage household information and family groupings</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium"
-        >
-          Add New Household
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => document.getElementById('importHouseholdFile').click()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          >
+            Import CSV
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium"
+          >
+            Add New Household
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -317,6 +395,14 @@ const HouseholdsManagement = () => {
           </div>
         </div>
       )}
+      
+      <input
+        id="importHouseholdFile"
+        type="file"
+        accept=".csv"
+        onChange={handleImport}
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };
