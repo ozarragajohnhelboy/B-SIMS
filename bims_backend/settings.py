@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'core',
     'financial',
     'projects',
+    'announcements',
 ]
 
 MIDDLEWARE = [

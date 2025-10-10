@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { residentsAPI, documentsAPI, blottersAPI } from '../services/api';
+import { residentsAPI, documentsAPI, blottersAPI, announcementsAPI } from '../services/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -8,6 +8,7 @@ const Dashboard = () => {
     residents: { total_residents: 0, voters: 0, pwd: 0, senior_citizens: 0 },
     documents: { total_requests: 0, pending_requests: 0, approved_requests: 0, released_requests: 0 },
     blotters: { total_blotters: 0, open_cases: 0, under_investigation: 0, settled_cases: 0 },
+    announcements: { total_announcements: 0, published_announcements: 0, draft_announcements: 0, featured_announcements: 0 },
   });
   const [loading, setLoading] = useState(true);
 
@@ -17,15 +18,17 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const [residentsRes, documentsRes, blottersRes] = await Promise.all([
+      const [residentsRes, documentsRes, blottersRes, announcementsRes] = await Promise.all([
         residentsAPI.getStats(),
         documentsAPI.getDocumentStats(),
         blottersAPI.getBlotterStats(),
+        announcementsAPI.getAnnouncementStats(),
       ]);
       setStats({
         residents: residentsRes.data,
         documents: documentsRes.data,
         blotters: blottersRes.data,
+        announcements: announcementsRes.data,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -95,6 +98,21 @@ const Dashboard = () => {
           </div>
         </div>
 
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm border border-orange-200 p-6 hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-orange-600">Announcements</p>
+              <p className="text-3xl font-bold text-orange-900">{stats.announcements.total_announcements}</p>
+              <p className="text-xs text-orange-500 mt-1">Published: {stats.announcements.published_announcements}</p>
+            </div>
+            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center shadow-lg">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm border border-purple-200 p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center justify-between">
             <div>
@@ -154,6 +172,12 @@ const Dashboard = () => {
               className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
             >
               Record Blotter Entry
+            </button>
+            <button 
+              onClick={() => navigate('/announcements')}
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
+            >
+              Create Announcement
             </button>
             <button 
               onClick={() => navigate('/reports')}

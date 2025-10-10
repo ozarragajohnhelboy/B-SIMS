@@ -203,4 +203,30 @@ export const projectsAPI = {
   getCalendarEvents: (start, end) => api.get(`/projects/events/calendar/?start=${start}&end=${end}`),
 };
 
+export const announcementsAPI = {
+  getCategories: () => api.get('/announcements/categories/'),
+  getCategory: (id) => api.get(`/announcements/categories/${id}/`),
+  createCategory: (data) => api.post('/announcements/categories/', data),
+  updateCategory: (id, data) => api.put(`/announcements/categories/${id}/`, data),
+  deleteCategory: (id) => api.delete(`/announcements/categories/${id}/`),
+  getCategoryStats: () => api.get('/announcements/categories/stats/'),
+  
+  getAnnouncements: (params) => api.get('/announcements/', { params }),
+  getAnnouncement: (id) => api.get(`/announcements/${id}/`),
+  createAnnouncement: (data) => api.post('/announcements/', data),
+  updateAnnouncement: (id, data) => api.put(`/announcements/${id}/`, data),
+  deleteAnnouncement: (id) => api.delete(`/announcements/${id}/`),
+  publishAnnouncement: (id) => api.post(`/announcements/${id}/publish/`),
+  archiveAnnouncement: (id) => api.post(`/announcements/${id}/archive/`),
+  trackAnnouncementView: (id) => api.post(`/announcements/${id}/track-view/`),
+  getAnnouncementStats: () => api.get('/announcements/stats/'),
+  
+  getTemplates: (params) => api.get('/announcements/templates/', { params }),
+  getTemplate: (id) => api.get(`/announcements/templates/${id}/`),
+  createTemplate: (data) => api.post('/announcements/templates/', data),
+  updateTemplate: (id, data) => api.put(`/announcements/templates/${id}/`, data),
+  deleteTemplate: (id) => api.delete(`/announcements/templates/${id}/`),
+  sendNotification: (id, data) => api.post(`/announcements/templates/${id}/send/`, data),
+};
+
 export default api;
