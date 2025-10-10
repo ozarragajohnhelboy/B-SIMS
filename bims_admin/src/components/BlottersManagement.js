@@ -309,98 +309,98 @@ const BlottersManagement = () => {
 
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-2xl rounded-xl bg-white">
-            <div className="mt-3">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {editingBlotter ? 'Edit Blotter Entry' : 'New Blotter Entry'}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingBlotter(null);
-                    resetForm();
-                  }}
-                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-                >
-                  ×
-                </button>
-              </div>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
+          <div className="relative top-4 mx-auto p-4 border w-full max-w-4xl shadow-2xl rounded-xl bg-white max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900">
+                {editingBlotter ? 'Edit Blotter Entry' : 'New Blotter Entry'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingBlotter(null);
+                  resetForm();
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-2">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Complainant Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Complainant Name</label>
                     <input
                       type="text"
                       value={formData.complainant_name}
                       onChange={(e) => setFormData({...formData, complainant_name: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Complainant Contact</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Complainant Contact</label>
                     <input
                       type="tel"
                       value={formData.complainant_contact}
                       onChange={(e) => setFormData({...formData, complainant_contact: e.target.value})}
                       placeholder="09XXXXXXXXX"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Complainant Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Complainant Address</label>
                   <textarea
                     value={formData.complainant_address}
                     onChange={(e) => setFormData({...formData, complainant_address: e.target.value})}
                     rows={2}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Respondent Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Respondent Name</label>
                     <input
                       type="text"
                       value={formData.respondent_name}
                       onChange={(e) => setFormData({...formData, respondent_name: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Respondent Contact</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Respondent Contact</label>
                     <input
                       type="tel"
                       value={formData.respondent_contact}
                       onChange={(e) => setFormData({...formData, respondent_contact: e.target.value})}
                       placeholder="09XXXXXXXXX"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Respondent Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Respondent Address</label>
                   <textarea
                     value={formData.respondent_address}
                     onChange={(e) => setFormData({...formData, respondent_address: e.target.value})}
                     rows={2}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Incident Type</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Incident Type</label>
                     <select
                       value={formData.incident_type}
                       onChange={(e) => setFormData({...formData, incident_type: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       required
                     >
                       <option value="">Select Type</option>
@@ -413,21 +413,21 @@ const BlottersManagement = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Incident Date</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Incident Date</label>
                     <input
                       type="datetime-local"
                       value={formData.incident_date}
                       onChange={(e) => setFormData({...formData, incident_date: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({...formData, status: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     >
                       <option value="open">Open</option>
                       <option value="under_investigation">Under Investigation</option>
@@ -438,57 +438,58 @@ const BlottersManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Incident Location</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Incident Location</label>
                   <input
                     type="text"
                     value={formData.incident_location}
                     onChange={(e) => setFormData({...formData, incident_location: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Summary</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Summary</label>
                   <textarea
                     value={formData.summary}
                     onChange={(e) => setFormData({...formData, summary: e.target.value})}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Resolution</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Resolution</label>
                   <textarea
                     value={formData.resolution}
                     onChange={(e) => setFormData({...formData, resolution: e.target.value})}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
-
-                <div className="flex justify-end space-x-4 pt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingBlotter(null);
-                      resetForm();
-                    }}
-                    className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-lg"
-                  >
-                    {editingBlotter ? 'Update Blotter' : 'Create Blotter'}
-                  </button>
-                </div>
               </form>
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-4 mt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingBlotter(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-medium"
+              >
+                {editingBlotter ? 'Update Blotter' : 'Create Blotter'}
+              </button>
             </div>
           </div>
         </div>

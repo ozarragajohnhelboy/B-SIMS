@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { residentsAPI, documentsAPI, blottersAPI } from '../services/api';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     residents: { total_residents: 0, voters: 0, pwd: 0, senior_citizens: 0 },
     documents: { total_requests: 0, pending_requests: 0, approved_requests: 0, released_requests: 0 },
@@ -135,16 +137,28 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <button className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150">
+            <button 
+              onClick={() => navigate('/residents')}
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
+            >
               Add New Resident
             </button>
-            <button className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150">
+            <button 
+              onClick={() => navigate('/documents')}
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
+            >
               Create Document Request
             </button>
-            <button className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150">
+            <button 
+              onClick={() => navigate('/blotters')}
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
+            >
               Record Blotter Entry
             </button>
-            <button className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150">
+            <button 
+              onClick={() => navigate('/reports')}
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
+            >
               Generate Reports
             </button>
           </div>

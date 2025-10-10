@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { residentsAPI, documentsAPI, blottersAPI } from '../services/api';
 
 const Reports = () => {
+  const navigate = useNavigate();
   const [residentStats, setResidentStats] = useState(null);
   const [documentStats, setDocumentStats] = useState(null);
   const [blotterStats, setBlotterStats] = useState(null);
@@ -162,15 +164,24 @@ const Reports = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left">
+          <button 
+            onClick={() => navigate('/residents')}
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left"
+          >
             <div className="text-sm font-medium text-gray-900 mb-1">Export Resident List</div>
             <div className="text-xs text-gray-500">Generate CSV report of all residents</div>
           </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left">
+          <button 
+            onClick={() => navigate('/documents')}
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left"
+          >
             <div className="text-sm font-medium text-gray-900 mb-1">Document Summary</div>
             <div className="text-xs text-gray-500">Create PDF summary of document requests</div>
           </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left">
+          <button 
+            onClick={() => navigate('/blotters')}
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left"
+          >
             <div className="text-sm font-medium text-gray-900 mb-1">Blotter Report</div>
             <div className="text-xs text-gray-500">Generate incident report for authorities</div>
           </button>
