@@ -8,6 +8,7 @@ from .views import (
     BlotterListView, BlotterDetailView,
     resident_stats_view, document_stats_view, blotter_stats_view
 )
+from .views.stats_views import dashboard_stats
 
 urlpatterns = [
     path('puroks/', PurokListView.as_view(), name='purok-list'),
@@ -17,6 +18,7 @@ urlpatterns = [
     path('', ResidentListView.as_view(), name='resident-list'),
     path('<int:pk>/', ResidentDetailView.as_view(), name='resident-detail'),
     path('stats/', resident_stats_view, name='resident-stats'),
+    path('dashboard-stats/', dashboard_stats, name='dashboard-stats'),
     path('documents/types/', DocumentTypeListView.as_view(), name='document-type-list'),
     path('documents/types/<int:pk>/', DocumentTypeDetailView.as_view(), name='document-type-detail'),
     path('documents/requests/', DocumentRequestListView.as_view(), name='document-request-list'),

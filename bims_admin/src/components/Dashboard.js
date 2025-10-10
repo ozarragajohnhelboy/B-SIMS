@@ -1,6 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { residentsAPI, documentsAPI, blottersAPI, announcementsAPI, coreAPI } from '../services/api';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar, Line } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -16,11 +39,20 @@ const Dashboard = () => {
     from: '',
     to: ''
   });
+  const [chartData, setChartData] = useState({
+    labels: [],
+    residents: [],
+    voters: [],
+    documents: [],
+    blotters: []
+  });
+  const [timePeriod, setTimePeriod] = useState('month');
 
   useEffect(() => {
     fetchStats();
     fetchRecentActivities();
-  }, [dateFilter]);
+    fetchChartData();
+  }, [dateFilter, timePeriod]);
 
   const fetchStats = async () => {
     try {
@@ -61,6 +93,83 @@ const Dashboard = () => {
 
   const clearDateFilter = () => {
     setDateFilter({ from: '', to: '' });
+  };
+
+  const fetchChartData = async () => {
+    try {
+      const response = await residentsAPI.getDashboardStats(timePeriod);
+      setChartData(response.data);
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+    }
+  };
+
+  const barChartData = {
+    labels: chartData.labels,
+    datasets: [
+      {
+        label: 'Residents',
+        data: chartData.residents,
+        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 1,
+      },
+      {
+        label: 'Registered Voters',
+        data: chartData.voters,
+        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+        borderColor: 'rgba(16, 185, 129, 1)',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const lineChartData = {
+    labels: chartData.labels,
+    datasets: [
+      {
+        label: 'Documents',
+        data: chartData.documents,
+        borderColor: 'rgba(245, 158, 11, 1)',
+        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Blotters',
+        data: chartData.blotters,
+        borderColor: 'rgba(239, 68, 68, 1)',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        tension: 0.4,
+        fill: true,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: false,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+    },
   };
 
   if (loading) {
@@ -155,6 +264,93 @@ const Dashboard = () => {
         </div>
       </div>
 
+      <div className="mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <button 
+              onClick={() => navigate('/residents')}
+              className="p-4 text-left bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-200"
+            >
+              <div className="text-blue-600 font-semibold text-sm">Add New Resident</div>
+              <div className="text-blue-500 text-xs mt-1">Register new barangay resident</div>
+            </button>
+            <button 
+              onClick={() => navigate('/documents')}
+              className="p-4 text-left bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:from-green-100 hover:to-green-200 transition-all duration-200"
+            >
+              <div className="text-green-600 font-semibold text-sm">Create Document Request</div>
+              <div className="text-green-500 text-xs mt-1">Process document applications</div>
+            </button>
+            <button 
+              onClick={() => navigate('/blotters')}
+              className="p-4 text-left bg-gradient-to-r from-red-50 to-red-100 rounded-lg border border-red-200 hover:from-red-100 hover:to-red-200 transition-all duration-200"
+            >
+              <div className="text-red-600 font-semibold text-sm">New Blotter Entry</div>
+              <div className="text-red-500 text-xs mt-1">Record incident reports</div>
+            </button>
+            <button 
+              onClick={() => navigate('/announcements')}
+              className="p-4 text-left bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:from-purple-100 hover:to-purple-200 transition-all duration-200"
+            >
+              <div className="text-purple-600 font-semibold text-sm">Create Announcement</div>
+              <div className="text-purple-500 text-xs mt-1">Broadcast public notices</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Analytics Dashboard</h3>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setTimePeriod('day')}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  timePeriod === 'day' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Day
+              </button>
+              <button
+                onClick={() => setTimePeriod('week')}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  timePeriod === 'week' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => setTimePeriod('month')}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  timePeriod === 'month' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Month
+              </button>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-80">
+              <h4 className="text-md font-medium text-gray-700 mb-4">Residents & Voters</h4>
+              <Bar data={barChartData} options={chartOptions} />
+            </div>
+            <div className="h-80">
+              <h4 className="text-md font-medium text-gray-700 mb-4">Documents & Blotters</h4>
+              <Line data={lineChartData} options={chartOptions} />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-4">
@@ -214,51 +410,36 @@ const Dashboard = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <button 
-              onClick={() => navigate('/residents')}
-              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
-            >
-              Add New Resident
-            </button>
-            <button 
-              onClick={() => navigate('/documents')}
-              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
-            >
-              Create Document Request
-            </button>
-            <button 
-              onClick={() => navigate('/blotters')}
-              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
-            >
-              Record Blotter Entry
-            </button>
-            <button 
-              onClick={() => navigate('/announcements')}
-              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
-            >
-              Create Announcement
-            </button>
-            <button 
-              onClick={() => navigate('/reports')}
-              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors duration-150"
-            >
-              Generate Reports
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Welcome to B-SIMS</h3>
-            <p className="text-sm text-gray-600">Your comprehensive barangay management solution is ready for use</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm font-medium text-green-700">System Online</span>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">System Status</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Database</span>
+              </div>
+              <span className="text-sm text-green-600 font-medium">Online</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">API Services</span>
+              </div>
+              <span className="text-sm text-green-600 font-medium">Operational</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">File Storage</span>
+              </div>
+              <span className="text-sm text-green-600 font-medium">Available</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Last Backup</span>
+              </div>
+              <span className="text-sm text-blue-600 font-medium">2 hours ago</span>
+            </div>
           </div>
         </div>
       </div>

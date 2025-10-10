@@ -166,24 +166,24 @@ const Reports = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button 
             onClick={() => navigate('/residents')}
-            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left"
+            className="p-4 text-left bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-200"
           >
-            <div className="text-sm font-medium text-gray-900 mb-1">Export Resident List</div>
-            <div className="text-xs text-gray-500">Generate CSV report of all residents</div>
+            <div className="text-blue-600 font-semibold text-sm">Export Resident List</div>
+            <div className="text-blue-500 text-xs mt-1">Generate CSV report of all residents</div>
           </button>
           <button 
             onClick={() => navigate('/documents')}
-            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left"
+            className="p-4 text-left bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:from-green-100 hover:to-green-200 transition-all duration-200"
           >
-            <div className="text-sm font-medium text-gray-900 mb-1">Document Summary</div>
-            <div className="text-xs text-gray-500">Create PDF summary of document requests</div>
+            <div className="text-green-600 font-semibold text-sm">Document Summary</div>
+            <div className="text-green-500 text-xs mt-1">Create PDF summary of document requests</div>
           </button>
           <button 
             onClick={() => navigate('/blotters')}
-            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150 text-left"
+            className="p-4 text-left bg-gradient-to-r from-red-50 to-red-100 rounded-lg border border-red-200 hover:from-red-100 hover:to-red-200 transition-all duration-200"
           >
-            <div className="text-sm font-medium text-gray-900 mb-1">Blotter Report</div>
-            <div className="text-xs text-gray-500">Generate incident report for authorities</div>
+            <div className="text-red-600 font-semibold text-sm">Blotter Report</div>
+            <div className="text-red-500 text-xs mt-1">Generate incident report for authorities</div>
           </button>
         </div>
       </div>

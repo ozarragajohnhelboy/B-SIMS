@@ -84,6 +84,7 @@ export const residentsAPI = {
   updateResident: (id, data) => api.put(`/residents/${id}/`, data),
   deleteResident: (id) => api.delete(`/residents/${id}/`),
   getStats: () => api.get('/residents/stats/'),
+  getDashboardStats: (period = 'month') => api.get(`/residents/dashboard-stats/?period=${period}`),
 };
 
 export const documentsAPI = {
