@@ -43,6 +43,37 @@ def logout_view(request):
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password_view(request):
+    current_password = request.data.get('current_password')
+    new_password = request.data.get('new_password')
+    
+    if not current_password or not new_password:
+        return Response(
+            {'message': 'Current password and new password are required'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if not request.user.check_password(current_password):
+        return Response(
+            {'message': 'Current password is incorrect'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    request.user.set_password(new_password)
+    request.user.save()
+    
+    log_activity(
+        user=request.user,
+        action='update',
+        description=f'User changed password',
+        ip_address=request.META.get('REMOTE_ADDR'),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')
+    )
+    
+    return Response({'message': 'Password changed successfully'})
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def profile_view(request):

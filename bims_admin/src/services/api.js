@@ -59,6 +59,7 @@ export const authAPI = {
   register: (userData) => api.post('/auth/register/', userData),
   logout: () => api.post('/auth/logout/', { refresh: localStorage.getItem('refresh_token') }),
   getProfile: () => api.get('/auth/profile/'),
+  changePassword: (data) => api.post('/auth/change-password/', data),
 };
 
 export const puroksAPI = {

@@ -1,366 +1,366 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { settingsAPI } from '../services/api';
+import { authAPI } from '../services/api';
 
 const Settings = () => {
-  const { user } = useAuth();
-  const [settings, setSettings] = useState({
-    barangay_name: 'Sample Barangay',
-    barangay_captain: 'Juan Dela Cruz',
-    barangay_secretary: 'Maria Santos',
-    barangay_treasurer: 'Pedro Garcia',
-    contact_number: '09123456789',
-    email: 'barangay@example.com',
-    address: '123 Main Street, Sample City',
-    website: 'www.samplebarangay.gov.ph',
-    logo_url: '',
-    theme_color: '#3B82F6',
-    enable_notifications: 'true',
-    enable_backup: 'true',
-    backup_frequency: 'daily',
-  });
-
-  const [isEditing, setIsEditing] = useState(false);
+  const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [sidebarColor, setSidebarColor] = useState('#3B82F6');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
-  const handleInputChange = (field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await settingsAPI.updateSettings(settings);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error saving settings:', error);
-    } finally {
-      setSaving(false);
+  const handleLogoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target.result);
+        localStorage.setItem('customLogo', e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await settingsAPI.getSettings();
-        setSettings(prev => ({
-          ...prev,
-          ...response.data
-        }));
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleColorChange = (color) => {
+    setSidebarColor(color);
+    localStorage.setItem('sidebarColor', color);
+    document.documentElement.style.setProperty('--sidebar-color', color);
+    
+    const event = new CustomEvent('sidebarColorChange', { detail: { color } });
+    window.dispatchEvent(event);
+  };
 
-    fetchSettings();
-  }, []);
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('New passwords do not match');
+      return;
+    }
 
-  const tabs = [
-    { id: 'general', name: 'General Information' },
-    { id: 'appearance', name: 'Appearance' },
-    { id: 'notifications', name: 'Notifications' },
-    { id: 'security', name: 'Security' },
-    { id: 'backup', name: 'Backup & Data' },
+    setLoading(true);
+    try {
+      await authAPI.changePassword({
+        current_password: passwordData.currentPassword,
+        new_password: passwordData.newPassword
+      });
+      alert('Password changed successfully');
+      setShowPasswordModal(false);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      alert('Failed to change password: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const colorOptions = [
+    { name: 'Blue', value: '#3B82F6' },
+    { name: 'Green', value: '#10B981' },
+    { name: 'Purple', value: '#8B5CF6' },
+    { name: 'Red', value: '#EF4444' },
+    { name: 'Orange', value: '#F59E0B' },
+    { name: 'Teal', value: '#14B8A6' },
+    { name: 'Pink', value: '#EC4899' },
+    { name: 'Indigo', value: '#6366F1' }
   ];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-1">Manage system configuration and preferences</p>
-        </div>
-        <div className="flex space-x-3">
-          {isEditing ? (
-            <>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-150 font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg"
-            >
-              Edit Settings
-            </button>
-          )}
-        </div>
+    <div className="p-6">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <p className="text-gray-600 mt-2">Manage your application preferences and security settings</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <nav className="space-y-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-150 ${
-                    activeTab === tab.id
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {tab.name}
-                </button>
-              ))}
-            </nav>
-          </div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab('general')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'general'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              General
+            </button>
+            <button
+              onClick={() => setActiveTab('appearance')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'appearance'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Appearance
+            </button>
+            <button
+              onClick={() => setActiveTab('security')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'security'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Security
+            </button>
+          </nav>
         </div>
 
-        <div className="lg:col-span-3">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            {activeTab === 'general' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">General Information</h3>
-                
+        <div className="p-6">
+          {activeTab === 'general' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Barangay Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Barangay Name</label>
+                    <label className="block text-sm font-medium text-gray-700">Barangay Name</label>
                     <input
                       type="text"
-                      value={settings.barangay_name}
-                      onChange={(e) => handleInputChange('barangay_name', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+                      defaultValue="Barangay Sample"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Barangay Captain</label>
+                    <label className="block text-sm font-medium text-gray-700">Barangay Captain</label>
                     <input
                       type="text"
-                      value={settings.barangay_captain}
-                      onChange={(e) => handleInputChange('barangay_captain', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+                      defaultValue="Juan Dela Cruz"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Barangay Secretary</label>
+                    <label className="block text-sm font-medium text-gray-700">Municipality/City</label>
                     <input
                       type="text"
-                      value={settings.barangay_secretary}
-                      onChange={(e) => handleInputChange('barangay_secretary', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+                      defaultValue="Sample City"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Barangay Treasurer</label>
+                    <label className="block text-sm font-medium text-gray-700">Province</label>
                     <input
                       type="text"
-                      value={settings.barangay_treasurer}
-                      onChange={(e) => handleInputChange('barangay_treasurer', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+                      defaultValue="Sample Province"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
-                  <textarea
-                    value={settings.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
+                    <label className="block text-sm font-medium text-gray-700">Contact Number</label>
                     <input
-                      type="tel"
-                      value={settings.contact_number}
-                      onChange={(e) => handleInputChange('contact_number', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+                      type="text"
+                      defaultValue="+63 912 345 6789"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                    <label className="block text-sm font-medium text-gray-700">Email Address</label>
                     <input
                       type="email"
-                      value={settings.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+                      defaultValue="barangay@sample.com"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
-              </div>
-            )}
-
-            {activeTab === 'appearance' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Appearance Settings</h3>
-                
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Theme Color</label>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="color"
-                      value={settings.theme_color}
-                      onChange={(e) => handleInputChange('theme_color', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-16 h-10 border border-gray-300 rounded-lg cursor-pointer disabled:cursor-not-allowed"
-                    />
-                    <span className="text-sm text-gray-600">{settings.theme_color}</span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Logo URL</label>
-                  <input
-                    type="url"
-                    value={settings.logo_url}
-                    onChange={(e) => handleInputChange('logo_url', e.target.value)}
-                    disabled={!isEditing}
-                    placeholder="https://example.com/logo.png"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700">Address</label>
+                  <textarea
+                    rows={3}
+                    defaultValue="123 Main Street, Sample Barangay, Sample City, Sample Province"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Website</label>
-                  <input
-                    type="url"
-                    value={settings.website}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
-                  />
+                <div className="mt-6 flex justify-end">
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Save Changes
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'notifications' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900">Email Notifications</h4>
-                      <p className="text-xs text-gray-500">Receive email alerts for important events</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.enable_notifications}
-                        onChange={(e) => handleInputChange('enable_notifications', e.target.checked)}
-                        disabled={!isEditing}
-                        className="sr-only peer"
+          {activeTab === 'appearance' && (
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Logo Settings</h3>
+                <div className="flex items-center space-x-6">
+                  <div className="flex-shrink-0">
+                    {logoPreview ? (
+                      <img
+                        src={logoPreview}
+                        alt="Custom Logo"
+                        className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 disabled:opacity-50"></div>
-                    </label>
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
+                        <span className="text-gray-400 text-sm">Logo</span>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Upload Logo
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Recommended size: 64x64 pixels. Supported formats: JPG, PNG, GIF
+                    </p>
                   </div>
                 </div>
               </div>
-            )}
 
-            {activeTab === 'security' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h3>
-                
-                <div className="space-y-4">
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Current User</h4>
-                    <p className="text-sm text-gray-600">{user?.first_name} {user?.last_name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
-                  </div>
-                  
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Password</h4>
-                    <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Sidebar Color</h3>
+                <div className="grid grid-cols-4 gap-4">
+                  {colorOptions.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => handleColorChange(color.value)}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        sidebarColor === color.value
+                          ? 'border-gray-900 ring-2 ring-blue-500'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div
+                        className="w-full h-8 rounded"
+                        style={{ backgroundColor: color.value }}
+                      ></div>
+                      <p className="text-sm text-gray-600 mt-2">{color.name}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'security' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Account Security</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-900">Password</h4>
+                      <p className="text-sm text-gray-600">Last changed: Never</p>
+                    </div>
+                    <button
+                      onClick={() => setShowPasswordModal(true)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
                       Change Password
                     </button>
                   </div>
                 </div>
               </div>
-            )}
 
-            {activeTab === 'backup' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Backup & Data Management</h3>
-                
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Login Information</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900">Automatic Backup</h4>
-                      <p className="text-xs text-gray-500">Automatically backup data to prevent data loss</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.enable_backup}
-                        onChange={(e) => handleInputChange('enable_backup', e.target.checked)}
-                        disabled={!isEditing}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 disabled:opacity-50"></div>
-                    </label>
-                  </div>
-
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Backup Frequency</label>
-                    <select
-                      value={settings.backup_frequency}
-                      onChange={(e) => handleInputChange('backup_frequency', e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
-                    >
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
-                      <option value="monthly">Monthly</option>
-                    </select>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <input
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
+                    />
                   </div>
-
-                  <div className="flex space-x-3">
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150 font-medium">
-                      Create Backup Now
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-150 font-medium">
-                      Restore from Backup
-                    </button>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Role</label>
+                    <input
+                      type="text"
+                      value={user?.role || ''}
+                      disabled
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 capitalize"
+                    />
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+            <form onSubmit={handlePasswordChange}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Current Password</label>
+                  <input
+                    type="password"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">New Password</label>
+                  <input
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                  <input
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Changing...' : 'Change Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

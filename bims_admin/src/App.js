@@ -12,8 +12,8 @@ import FinancialManagement from './components/FinancialManagement';
 import ProjectManagement from './components/ProjectManagement';
 import AnnouncementManagement from './components/AnnouncementManagement';
 import UserManagement from './components/UserManagement';
-import Reports from './components/Reports';
 import Settings from './components/Settings';
+import Reports from './components/Reports';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const AppRoutes = () => {

@@ -6,6 +6,22 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [customLogo, setCustomLogo] = useState(null);
+  const [sidebarColor, setSidebarColor] = useState('#3B82F6');
+
+  useEffect(() => {
+    const savedLogo = localStorage.getItem('customLogo');
+    const savedColor = localStorage.getItem('sidebarColor');
+    if (savedLogo) setCustomLogo(savedLogo);
+    if (savedColor) setSidebarColor(savedColor);
+
+    const handleColorChange = (event) => {
+      setSidebarColor(event.detail.color);
+    };
+
+    window.addEventListener('sidebarColorChange', handleColorChange);
+    return () => window.removeEventListener('sidebarColorChange', handleColorChange);
+  }, []);
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: 'M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z', roles: ['admin', 'secretary', 'treasurer'] },
@@ -47,10 +63,21 @@ const Sidebar = ({ isOpen, onClose }) => {
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-700">
+        <div 
+          className="flex items-center justify-between h-16 px-6 border-b border-gray-200"
+          style={{ background: `linear-gradient(to right, ${sidebarColor}, ${sidebarColor}dd)` }}
+        >
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <div className="w-5 h-5 bg-gradient-to-r from-blue-600 to-indigo-700 rounded"></div>
+              {customLogo ? (
+                <img 
+                  src={customLogo} 
+                  alt="Logo" 
+                  className="w-6 h-6 object-cover rounded"
+                />
+              ) : (
+                <div className="w-5 h-5 rounded" style={{ backgroundColor: sidebarColor }}></div>
+              )}
             </div>
             <h1 className="text-xl font-bold text-white">B-SIMS</h1>
           </div>
