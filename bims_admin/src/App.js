@@ -8,6 +8,7 @@ import ResidentsManagement from './components/ResidentsManagement';
 import HouseholdsManagement from './components/HouseholdsManagement';
 import DocumentsManagement from './components/DocumentsManagement';
 import BlottersManagement from './components/BlottersManagement';
+import FinancialManagement from './components/FinancialManagement';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -67,6 +68,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <BlottersManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/financial"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <FinancialManagement />
             </Layout>
           </ProtectedRoute>
         }

@@ -119,4 +119,46 @@ export const settingsAPI = {
   deleteConfiguration: (id) => api.delete(`/core/configurations/${id}/`),
 };
 
+export const financialAPI = {
+  getIncomeCategories: (params) => api.get('/financial/income-categories/', { params }),
+  getIncomeCategory: (id) => api.get(`/financial/income-categories/${id}/`),
+  createIncomeCategory: (data) => api.post('/financial/income-categories/', data),
+  updateIncomeCategory: (id, data) => api.put(`/financial/income-categories/${id}/`, data),
+  deleteIncomeCategory: (id) => api.delete(`/financial/income-categories/${id}/`),
+  
+  getExpenseCategories: (params) => api.get('/financial/expense-categories/', { params }),
+  getExpenseCategory: (id) => api.get(`/financial/expense-categories/${id}/`),
+  createExpenseCategory: (data) => api.post('/financial/expense-categories/', data),
+  updateExpenseCategory: (id, data) => api.put(`/financial/expense-categories/${id}/`, data),
+  deleteExpenseCategory: (id) => api.delete(`/financial/expense-categories/${id}/`),
+  
+  getIncomes: (params) => api.get('/financial/incomes/', { params }),
+  getIncome: (id) => api.get(`/financial/incomes/${id}/`),
+  createIncome: (data) => api.post('/financial/incomes/', data),
+  updateIncome: (id, data) => api.put(`/financial/incomes/${id}/`, data),
+  deleteIncome: (id) => api.delete(`/financial/incomes/${id}/`),
+  
+  getExpenses: (params) => api.get('/financial/expenses/', { params }),
+  getExpense: (id) => api.get(`/financial/expenses/${id}/`),
+  createExpense: (data) => api.post('/financial/expenses/', data),
+  updateExpense: (id, data) => api.put(`/financial/expenses/${id}/`, data),
+  deleteExpense: (id) => api.delete(`/financial/expenses/${id}/`),
+  
+  getFinancialReports: (params) => api.get('/financial/reports/', { params }),
+  getFinancialReport: (id) => api.get(`/financial/reports/${id}/`),
+  createFinancialReport: (data) => api.post('/financial/reports/', data),
+  updateFinancialReport: (id, data) => api.put(`/financial/reports/${id}/`, data),
+  deleteFinancialReport: (id) => api.delete(`/financial/reports/${id}/`),
+  generateMonthlyReport: (data) => api.post('/financial/reports/generate-monthly/', data),
+  generateQuarterlyReport: (data) => api.post('/financial/reports/generate-quarterly/', data),
+  getFinancialSummary: () => api.get('/financial/reports/summary/'),
+  
+  getTransparencyBoards: (params) => api.get('/financial/transparency/', { params }),
+  getTransparencyBoard: (id) => api.get(`/financial/transparency/${id}/`),
+  createTransparencyBoard: (data) => api.post('/financial/transparency/', data),
+  updateTransparencyBoard: (id, data) => api.put(`/financial/transparency/${id}/`, data),
+  deleteTransparencyBoard: (id) => api.delete(`/financial/transparency/${id}/`),
+  getPublicTransparencyBoards: () => api.get('/financial/transparency/public/'),
+};
+
 export default api;
