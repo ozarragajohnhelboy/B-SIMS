@@ -1,12 +1,13 @@
 from rest_framework import generics, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from accounts.permissions import SecretaryPermission
 from core.utils import log_activity
 from ..models import Blotter
 from ..serializers import BlotterSerializer, BlotterCreateSerializer
 
 class BlotterListView(generics.ListCreateAPIView):
     queryset = Blotter.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [SecretaryPermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'incident_type']
     search_fields = ['blotter_number', 'complainant_name', 'respondent_name', 'summary']
@@ -31,7 +32,7 @@ class BlotterListView(generics.ListCreateAPIView):
 
 class BlotterDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Blotter.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [SecretaryPermission]
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.db import models
+from accounts.permissions import AdminOnlyPermission
 from core.utils import log_activity
 from ..models import Project
 from ..serializers import ProjectSerializer, ProjectCreateSerializer
@@ -12,7 +13,7 @@ from ..serializers import ProjectSerializer, ProjectCreateSerializer
 
 class ProjectListView(generics.ListCreateAPIView):
     queryset = Project.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AdminOnlyPermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'priority', 'project_type', 'is_public']
     search_fields = ['title', 'description', 'location', 'project_number']
@@ -39,7 +40,7 @@ class ProjectListView(generics.ListCreateAPIView):
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AdminOnlyPermission]
 
     def perform_update(self, serializer):
         project = serializer.save()

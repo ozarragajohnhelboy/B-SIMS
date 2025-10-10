@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from accounts.permissions import SecretaryPermission
 from core.utils import log_activity
 from ..models import DocumentType, DocumentRequest
 from ..serializers import DocumentTypeSerializer, DocumentRequestSerializer, DocumentRequestCreateSerializer
@@ -7,18 +8,18 @@ from ..serializers import DocumentTypeSerializer, DocumentRequestSerializer, Doc
 class DocumentTypeListView(generics.ListCreateAPIView):
     queryset = DocumentType.objects.filter(is_active=True)
     serializer_class = DocumentTypeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [SecretaryPermission]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'description']
 
 class DocumentTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DocumentType.objects.all()
     serializer_class = DocumentTypeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [SecretaryPermission]
 
 class DocumentRequestListView(generics.ListCreateAPIView):
     queryset = DocumentRequest.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [SecretaryPermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'document_type', 'resident']
     search_fields = ['request_number', 'resident__first_name', 'resident__last_name', 'purpose']
@@ -43,7 +44,7 @@ class DocumentRequestListView(generics.ListCreateAPIView):
 
 class DocumentRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = DocumentRequest.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [SecretaryPermission]
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:

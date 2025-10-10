@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { residentsAPI, documentsAPI, blottersAPI, announcementsAPI, coreAPI } from '../services/api';
 import {
   Chart as ChartJS,
@@ -27,6 +28,7 @@ ChartJS.register(
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     residents: { total_residents: 0, voters: 0, pwd: 0, senior_citizens: 0 },
     documents: { total_requests: 0, pending_requests: 0, approved_requests: 0, released_requests: 0 },
@@ -268,34 +270,78 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button 
-              onClick={() => navigate('/residents')}
-              className="p-4 text-left bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-200"
-            >
-              <div className="text-blue-600 font-semibold text-sm">Add New Resident</div>
-              <div className="text-blue-500 text-xs mt-1">Register new barangay resident</div>
-            </button>
-            <button 
-              onClick={() => navigate('/documents')}
-              className="p-4 text-left bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:from-green-100 hover:to-green-200 transition-all duration-200"
-            >
-              <div className="text-green-600 font-semibold text-sm">Create Document Request</div>
-              <div className="text-green-500 text-xs mt-1">Process document applications</div>
-            </button>
-            <button 
-              onClick={() => navigate('/blotters')}
-              className="p-4 text-left bg-gradient-to-r from-red-50 to-red-100 rounded-lg border border-red-200 hover:from-red-100 hover:to-red-200 transition-all duration-200"
-            >
-              <div className="text-red-600 font-semibold text-sm">New Blotter Entry</div>
-              <div className="text-red-500 text-xs mt-1">Record incident reports</div>
-            </button>
-            <button 
-              onClick={() => navigate('/announcements')}
-              className="p-4 text-left bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:from-purple-100 hover:to-purple-200 transition-all duration-200"
-            >
-              <div className="text-purple-600 font-semibold text-sm">Create Announcement</div>
-              <div className="text-purple-500 text-xs mt-1">Broadcast public notices</div>
-            </button>
+            {(user?.role === 'admin' || user?.role === 'secretary') && (
+              <button 
+                onClick={() => navigate('/residents')}
+                className="p-4 text-left bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-200"
+              >
+                <div className="text-blue-600 font-semibold text-sm">Add New Resident</div>
+                <div className="text-blue-500 text-xs mt-1">Register new barangay resident</div>
+              </button>
+            )}
+            {(user?.role === 'admin' || user?.role === 'secretary') && (
+              <button 
+                onClick={() => navigate('/documents')}
+                className="p-4 text-left bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:from-green-100 hover:to-green-200 transition-all duration-200"
+              >
+                <div className="text-green-600 font-semibold text-sm">Create Document Request</div>
+                <div className="text-green-500 text-xs mt-1">Process document applications</div>
+              </button>
+            )}
+            {(user?.role === 'admin' || user?.role === 'secretary') && (
+              <button 
+                onClick={() => navigate('/blotters')}
+                className="p-4 text-left bg-gradient-to-r from-red-50 to-red-100 rounded-lg border border-red-200 hover:from-red-100 hover:to-red-200 transition-all duration-200"
+              >
+                <div className="text-red-600 font-semibold text-sm">New Blotter Entry</div>
+                <div className="text-red-500 text-xs mt-1">Record incident reports</div>
+              </button>
+            )}
+            {(user?.role === 'admin' || user?.role === 'secretary') && (
+              <button 
+                onClick={() => navigate('/announcements')}
+                className="p-4 text-left bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:from-purple-100 hover:to-purple-200 transition-all duration-200"
+              >
+                <div className="text-purple-600 font-semibold text-sm">Create Announcement</div>
+                <div className="text-purple-500 text-xs mt-1">Broadcast public notices</div>
+              </button>
+            )}
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => navigate('/projects')}
+                className="p-4 text-left bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200 hover:from-indigo-100 hover:to-indigo-200 transition-all duration-200"
+              >
+                <div className="text-indigo-600 font-semibold text-sm">Manage Projects</div>
+                <div className="text-indigo-500 text-xs mt-1">Track barangay projects</div>
+              </button>
+            )}
+            {(user?.role === 'admin' || user?.role === 'treasurer') && (
+              <button 
+                onClick={() => navigate('/financial')}
+                className="p-4 text-left bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200 hover:from-yellow-100 hover:to-yellow-200 transition-all duration-200"
+              >
+                <div className="text-yellow-600 font-semibold text-sm">Financial Records</div>
+                <div className="text-yellow-500 text-xs mt-1">Manage income and expenses</div>
+              </button>
+            )}
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => navigate('/users')}
+                className="p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:from-gray-100 hover:to-gray-200 transition-all duration-200"
+              >
+                <div className="text-gray-600 font-semibold text-sm">User Management</div>
+                <div className="text-gray-500 text-xs mt-1">Manage admin accounts</div>
+              </button>
+            )}
+            {(user?.role === 'admin' || user?.role === 'treasurer') && (
+              <button 
+                onClick={() => navigate('/reports')}
+                className="p-4 text-left bg-gradient-to-r from-teal-50 to-teal-100 rounded-lg border border-teal-200 hover:from-teal-100 hover:to-teal-200 transition-all duration-200"
+              >
+                <div className="text-teal-600 font-semibold text-sm">Generate Reports</div>
+                <div className="text-teal-500 text-xs mt-1">Create system reports</div>
+              </button>
+            )}
           </div>
         </div>
       </div>

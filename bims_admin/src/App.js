@@ -11,6 +11,7 @@ import BlottersManagement from './components/BlottersManagement';
 import FinancialManagement from './components/FinancialManagement';
 import ProjectManagement from './components/ProjectManagement';
 import AnnouncementManagement from './components/AnnouncementManagement';
+import UserManagement from './components/UserManagement';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -110,6 +111,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <Reports />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <UserManagement />
             </Layout>
           </ProtectedRoute>
         }

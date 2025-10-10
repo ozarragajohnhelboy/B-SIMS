@@ -230,6 +230,14 @@ export const announcementsAPI = {
   sendNotification: (id, data) => api.post(`/announcements/templates/${id}/send/`, data),
 };
 
+export const usersAPI = {
+  getUsers: (params) => api.get('/auth/users/', { params }),
+  getUser: (id) => api.get(`/auth/users/${id}/`),
+  createUser: (data) => api.post('/auth/users/', data),
+  updateUser: (id, data) => api.put(`/auth/users/${id}/`, data),
+  deleteUser: (id) => api.delete(`/auth/users/${id}/`),
+};
+
 export const coreAPI = {
   getActivities: (params) => api.get('/core/activities/', { params }),
   getRecentActivities: (limit = 10, dateFrom = null, dateTo = null) => {

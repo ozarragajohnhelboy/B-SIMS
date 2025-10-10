@@ -1,12 +1,13 @@
 from rest_framework import generics, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from accounts.permissions import SecretaryPermission
 from core.utils import log_activity
 from ..models import Resident
 from ..serializers import ResidentSerializer, ResidentCreateSerializer
 
 class ResidentListView(generics.ListCreateAPIView):
     queryset = Resident.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [SecretaryPermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['gender', 'marital_status', 'is_voter', 'is_pwd', 'is_senior_citizen', 'household__purok']
     search_fields = ['first_name', 'last_name', 'middle_name', 'barangay_id', 'household__household_number']
@@ -32,7 +33,7 @@ class ResidentListView(generics.ListCreateAPIView):
 class ResidentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Resident.objects.all()
     serializer_class = ResidentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [SecretaryPermission]
 
     def perform_update(self, serializer):
         resident = serializer.save()

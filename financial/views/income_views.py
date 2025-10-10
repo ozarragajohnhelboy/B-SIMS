@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from accounts.permissions import TreasurerPermission
 from core.utils import log_activity
 from ..models import Income
 from ..serializers import IncomeSerializer, IncomeCreateSerializer
@@ -7,7 +8,7 @@ from ..serializers import IncomeSerializer, IncomeCreateSerializer
 
 class IncomeListView(generics.ListCreateAPIView):
     queryset = Income.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [TreasurerPermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'income_type', 'recorded_by']
     search_fields = ['income_number', 'description', 'source', 'reference_number']
@@ -34,7 +35,7 @@ class IncomeListView(generics.ListCreateAPIView):
 class IncomeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Income.objects.all()
     serializer_class = IncomeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [TreasurerPermission]
 
     def perform_update(self, serializer):
         income = serializer.save()

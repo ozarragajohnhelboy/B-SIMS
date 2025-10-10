@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db.models import Q, Count
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from accounts.permissions import SecretaryPermission
 from core.utils import log_activity
 from ..models import Announcement, AnnouncementView
 from ..serializers import AnnouncementListSerializer, AnnouncementDetailSerializer, AnnouncementCreateSerializer
@@ -12,7 +13,7 @@ from ..serializers import AnnouncementListSerializer, AnnouncementDetailSerializ
 
 class AnnouncementListView(generics.ListCreateAPIView):
     serializer_class = AnnouncementListSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [SecretaryPermission]
 
     def get_queryset(self):
         queryset = Announcement.objects.select_related('category', 'created_by').all()
@@ -51,7 +52,7 @@ class AnnouncementListView(generics.ListCreateAPIView):
 class AnnouncementDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Announcement.objects.select_related('category', 'created_by', 'updated_by')
     serializer_class = AnnouncementDetailSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [SecretaryPermission]
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:
