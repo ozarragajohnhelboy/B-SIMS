@@ -26,7 +26,14 @@ class IncomeSerializer(serializers.ModelSerializer):
 class IncomeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Income
-        fields = '__all__'
+        fields = [
+            'category', 'income_type', 'description', 'amount', 
+            'source', 'reference_number', 'date_received'
+        ]
+    
+    def create(self, validated_data):
+        income = Income.objects.create(**validated_data)
+        return income
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
@@ -42,7 +49,14 @@ class ExpenseSerializer(serializers.ModelSerializer):
 class ExpenseCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = '__all__'
+        fields = [
+            'category', 'expense_type', 'description', 'amount', 
+            'vendor', 'reference_number', 'date_paid'
+        ]
+    
+    def create(self, validated_data):
+        expense = Expense.objects.create(**validated_data)
+        return expense
 
 
 class FinancialReportSerializer(serializers.ModelSerializer):

@@ -9,6 +9,7 @@ import HouseholdsManagement from './components/HouseholdsManagement';
 import DocumentsManagement from './components/DocumentsManagement';
 import BlottersManagement from './components/BlottersManagement';
 import FinancialManagement from './components/FinancialManagement';
+import ProjectManagement from './components/ProjectManagement';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -78,6 +79,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <FinancialManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ProjectManagement />
             </Layout>
           </ProtectedRoute>
         }

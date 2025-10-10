@@ -37,16 +37,31 @@ class ExpenseCategory(models.Model):
 
 class Income(models.Model):
     INCOME_TYPE_CHOICES = [
-        ('certificate', 'Certificate Fees'),
-        ('permit', 'Permit Fees'),
-        ('donation', 'Donations'),
-        ('grant', 'Government Grants'),
-        ('other', 'Other Income'),
+        ('barangay_clearance', 'Barangay Clearance'),
+        ('indigency', 'Certificate of Indigency'),
+        ('residency', 'Certificate of Residency'),
+        ('good_moral', 'Good Moral Character'),
+        ('other_cert', 'Other Certificate'),
+        ('business_permit', 'Business Permit'),
+        ('construction_permit', 'Construction Permit'),
+        ('event_permit', 'Event Permit'),
+        ('other_permit', 'Other Permit'),
+        ('community_donation', 'Community Donation'),
+        ('religious_donation', 'Religious Donation'),
+        ('charity_donation', 'Charity Donation'),
+        ('other_donation', 'Other Donation'),
+        ('infrastructure_grant', 'Infrastructure Grant'),
+        ('health_grant', 'Health Program Grant'),
+        ('education_grant', 'Education Grant'),
+        ('other_grant', 'Other Grant'),
+        ('rental_income', 'Rental Income'),
+        ('interest_income', 'Interest Income'),
+        ('miscellaneous', 'Miscellaneous'),
     ]
     
     income_number = models.CharField(max_length=20, unique=True, blank=True)
     category = models.ForeignKey(IncomeCategory, on_delete=models.CASCADE, related_name='incomes')
-    income_type = models.CharField(max_length=20, choices=INCOME_TYPE_CHOICES)
+    income_type = models.CharField(max_length=30, choices=INCOME_TYPE_CHOICES)
     description = models.TextField()
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     source = models.CharField(max_length=200)
@@ -70,17 +85,33 @@ class Income(models.Model):
 
 class Expense(models.Model):
     EXPENSE_TYPE_CHOICES = [
-        ('project', 'Project Expenses'),
-        ('allowance', 'Allowances'),
-        ('utility', 'Utilities'),
-        ('maintenance', 'Maintenance'),
-        ('supplies', 'Office Supplies'),
-        ('other', 'Other Expenses'),
+        ('infrastructure', 'Infrastructure Project'),
+        ('renovation', 'Building Renovation'),
+        ('equipment', 'Equipment Purchase'),
+        ('other_project', 'Other Project'),
+        ('official_allowance', 'Official Allowance'),
+        ('travel_allowance', 'Travel Allowance'),
+        ('meal_allowance', 'Meal Allowance'),
+        ('other_allowance', 'Other Allowance'),
+        ('electricity', 'Electricity Bill'),
+        ('water', 'Water Bill'),
+        ('internet', 'Internet Bill'),
+        ('other_utility', 'Other Utility'),
+        ('building_maintenance', 'Building Maintenance'),
+        ('equipment_maintenance', 'Equipment Maintenance'),
+        ('vehicle_maintenance', 'Vehicle Maintenance'),
+        ('other_maintenance', 'Other Maintenance'),
+        ('stationery', 'Stationery'),
+        ('printing', 'Printing Materials'),
+        ('cleaning', 'Cleaning Supplies'),
+        ('other_supplies', 'Other Supplies'),
+        ('emergency', 'Emergency Expense'),
+        ('miscellaneous', 'Miscellaneous'),
     ]
     
     expense_number = models.CharField(max_length=20, unique=True, blank=True)
     category = models.ForeignKey(ExpenseCategory, on_delete=models.CASCADE, related_name='expenses')
-    expense_type = models.CharField(max_length=20, choices=EXPENSE_TYPE_CHOICES)
+    expense_type = models.CharField(max_length=30, choices=EXPENSE_TYPE_CHOICES)
     description = models.TextField()
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     vendor = models.CharField(max_length=200, blank=True)

@@ -11,6 +11,9 @@ const FinancialManagement = () => {
     monthly_data: []
   });
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
 
   useEffect(() => {
     fetchFinancialSummary();
@@ -164,6 +167,9 @@ const IncomeManagement = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   const [formData, setFormData] = useState({
     category: '',
     income_type: '',
@@ -173,6 +179,18 @@ const IncomeManagement = () => {
     reference_number: '',
     date_received: ''
   });
+
+  const filteredIncomes = incomes.filter(income =>
+    income.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    income.category_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    income.income_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    income.source?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredIncomes.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedIncomes = filteredIncomes.slice(startIndex, endIndex);
 
   const getTypeOptions = (categoryId) => {
     if (!categoryId) return [];
@@ -254,7 +272,12 @@ const IncomeManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await financialAPI.createIncome(formData);
+      const submitData = {
+        ...formData,
+        category: parseInt(formData.category),
+        amount: parseFloat(formData.amount)
+      };
+      await financialAPI.createIncome(submitData);
       setShowForm(false);
       setFormData({
         category: '',
@@ -285,6 +308,24 @@ const IncomeManagement = () => {
         >
           Add Income
         </button>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <div className="flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Search income records..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="text-sm text-gray-600">
+          Showing {startIndex + 1}-{Math.min(endIndex, filteredIncomes.length)} of {filteredIncomes.length} records
+        </div>
       </div>
 
       {showForm && (
@@ -415,7 +456,7 @@ const IncomeManagement = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {incomes && incomes.length > 0 ? incomes.map(income => (
+            {paginatedIncomes && paginatedIncomes.length > 0 ? paginatedIncomes.map(income => (
               <tr key={income.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{income.income_number}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{income.description}</td>
@@ -431,6 +472,40 @@ const IncomeManagement = () => {
           </tbody>
         </table>
       </div>
+      
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-2 text-sm font-medium rounded-md ${
+                page === currentPage
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -440,6 +515,9 @@ const ExpenseManagement = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   const [formData, setFormData] = useState({
     category: '',
     expense_type: '',
@@ -501,6 +579,17 @@ const ExpenseManagement = () => {
     fetchCategories();
   }, []);
 
+  const filteredExpenses = expenses.filter(expense =>
+    expense.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    expense.vendor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    expense.reference_number?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedExpenses = filteredExpenses.slice(startIndex, endIndex);
+
   const fetchExpenses = async () => {
     try {
       const response = await financialAPI.getExpenses();
@@ -534,7 +623,12 @@ const ExpenseManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await financialAPI.createExpense(formData);
+      const submitData = {
+        ...formData,
+        category: parseInt(formData.category),
+        amount: parseFloat(formData.amount)
+      };
+      await financialAPI.createExpense(submitData);
       setShowForm(false);
       setFormData({
         category: '',
@@ -565,6 +659,24 @@ const ExpenseManagement = () => {
         >
           Add Expense
         </button>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <div className="flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Search expense records..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+          />
+        </div>
+        <div className="text-sm text-gray-600">
+          Showing {startIndex + 1}-{Math.min(endIndex, filteredExpenses.length)} of {filteredExpenses.length} records
+        </div>
       </div>
 
       {showForm && (
@@ -694,7 +806,7 @@ const ExpenseManagement = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {expenses && expenses.length > 0 ? expenses.map(expense => (
+            {paginatedExpenses && paginatedExpenses.length > 0 ? paginatedExpenses.map(expense => (
               <tr key={expense.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{expense.expense_number}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{expense.description}</td>
@@ -710,6 +822,40 @@ const ExpenseManagement = () => {
           </tbody>
         </table>
       </div>
+      
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-2 text-sm font-medium rounded-md ${
+                page === currentPage
+                  ? 'bg-red-600 text-white'
+                  : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -718,6 +864,9 @@ const FinancialReports = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showGenerateForm, setShowGenerateForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   const [generateForm, setGenerateForm] = useState({
     report_type: '',
     year: new Date().getFullYear(),
@@ -728,6 +877,17 @@ const FinancialReports = () => {
   useEffect(() => {
     fetchReports();
   }, []);
+
+  const filteredReports = reports.filter(report =>
+    report.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    report.report_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    report.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
 
   const fetchReports = async () => {
     try {
@@ -782,6 +942,24 @@ const FinancialReports = () => {
         >
           Generate Report
         </button>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <div className="flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Search reports..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+        <div className="text-sm text-gray-600">
+          Showing {startIndex + 1}-{Math.min(endIndex, filteredReports.length)} of {filteredReports.length} records
+        </div>
       </div>
 
       {showGenerateForm && (
@@ -905,7 +1083,7 @@ const FinancialReports = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {reports && reports.length > 0 ? reports.map(report => (
+            {paginatedReports && paginatedReports.length > 0 ? paginatedReports.map(report => (
               <tr key={report.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{report.report_number}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">{report.report_type}</td>
@@ -933,6 +1111,40 @@ const FinancialReports = () => {
           </tbody>
         </table>
       </div>
+      
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-2 text-sm font-medium rounded-md ${
+                page === currentPage
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -941,6 +1153,9 @@ const TransparencyBoard = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -950,6 +1165,16 @@ const TransparencyBoard = () => {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  const filteredPosts = posts.filter(post =>
+    post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.content?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredPosts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
 
   const fetchPosts = async () => {
     try {
@@ -1004,6 +1229,24 @@ const TransparencyBoard = () => {
         >
           Add Post
         </button>
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <div className="flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Search posts..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+        <div className="text-sm text-gray-600">
+          Showing {startIndex + 1}-{Math.min(endIndex, filteredPosts.length)} of {filteredPosts.length} records
+        </div>
       </div>
 
       {showForm && (
@@ -1077,7 +1320,7 @@ const TransparencyBoard = () => {
       )}
 
       <div className="space-y-4">
-        {posts && posts.length > 0 ? posts.map(post => (
+        {paginatedPosts && paginatedPosts.length > 0 ? paginatedPosts.map(post => (
           <div key={post.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex justify-between items-start mb-4">
               <h4 className="text-lg font-semibold text-gray-900">{post.title}</h4>
@@ -1115,6 +1358,40 @@ const TransparencyBoard = () => {
           </div>
         )}
       </div>
+      
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-2 text-sm font-medium rounded-md ${
+                page === currentPage
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

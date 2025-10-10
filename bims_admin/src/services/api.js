@@ -161,4 +161,46 @@ export const financialAPI = {
   getPublicTransparencyBoards: () => api.get('/financial/transparency/public/'),
 };
 
+export const projectsAPI = {
+  getProjectTypes: (params) => api.get('/projects/types/', { params }),
+  getProjectType: (id) => api.get(`/projects/types/${id}/`),
+  createProjectType: (data) => api.post('/projects/types/', data),
+  updateProjectType: (id, data) => api.put(`/projects/types/${id}/`, data),
+  deleteProjectType: (id) => api.delete(`/projects/types/${id}/`),
+
+  getProjects: (params) => api.get('/projects/', { params }),
+  getProject: (id) => api.get(`/projects/${id}/`),
+  createProject: (data) => api.post('/projects/', data),
+  updateProject: (id, data) => api.put(`/projects/${id}/`, data),
+  deleteProject: (id) => api.delete(`/projects/${id}/`),
+  getProjectStats: () => api.get('/projects/stats/'),
+  getProjectProgress: () => api.get('/projects/progress/'),
+
+  getProjectPhotos: (params) => api.get('/projects/photos/', { params }),
+  getProjectPhoto: (id) => api.get(`/projects/photos/${id}/`),
+  createProjectPhoto: (data) => api.post('/projects/photos/', data),
+  updateProjectPhoto: (id, data) => api.put(`/projects/photos/${id}/`, data),
+  deleteProjectPhoto: (id) => api.delete(`/projects/photos/${id}/`),
+
+  getProjectReceipts: (params) => api.get('/projects/receipts/', { params }),
+  getProjectReceipt: (id) => api.get(`/projects/receipts/${id}/`),
+  createProjectReceipt: (data) => api.post('/projects/receipts/', data),
+  updateProjectReceipt: (id, data) => api.put(`/projects/receipts/${id}/`, data),
+  deleteProjectReceipt: (id) => api.delete(`/projects/receipts/${id}/`),
+
+  getProjectMilestones: (params) => api.get('/projects/milestones/', { params }),
+  getProjectMilestone: (id) => api.get(`/projects/milestones/${id}/`),
+  createProjectMilestone: (data) => api.post('/projects/milestones/', data),
+  updateProjectMilestone: (id, data) => api.put(`/projects/milestones/${id}/`, data),
+  deleteProjectMilestone: (id) => api.delete(`/projects/milestones/${id}/`),
+
+  getCommunityEvents: (params) => api.get('/projects/events/', { params }),
+  getCommunityEvent: (id) => api.get(`/projects/events/${id}/`),
+  createCommunityEvent: (data) => api.post('/projects/events/', data),
+  updateCommunityEvent: (id, data) => api.put(`/projects/events/${id}/`, data),
+  deleteCommunityEvent: (id) => api.delete(`/projects/events/${id}/`),
+  getUpcomingEvents: () => api.get('/projects/events/upcoming/'),
+  getCalendarEvents: (start, end) => api.get(`/projects/events/calendar/?start=${start}&end=${end}`),
+};
+
 export default api;
