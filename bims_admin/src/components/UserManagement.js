@@ -28,6 +28,10 @@ const UserManagement = () => {
     setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
   };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   const fetchUsers = async () => {
     try {
       setLoading(true);

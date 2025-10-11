@@ -35,6 +35,11 @@ const AnnouncementManagement = () => {
     setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
   };
 
+  useEffect(() => {
+    fetchAnnouncements();
+    fetchCategories();
+  }, []);
+
   const fetchAnnouncements = async () => {
     try {
       const response = await announcementsAPI.getAnnouncements();
