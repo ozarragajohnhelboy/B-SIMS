@@ -15,7 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { settingsAPI } from '../services/settingsAPI';
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -176,7 +176,7 @@ const LoginScreen = () => {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account?</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
             <Text style={styles.registerText}>Register Here</Text>
           </TouchableOpacity>
         </View>

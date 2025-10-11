@@ -5,7 +5,10 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
-import HomeScreen from './src/screens/HomeScreen';
+import DashboardScreen from './src/screens/DashboardScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import BarangayIDScreen from './src/screens/BarangayIDScreen';
+import ContactsScreen from './src/screens/ContactsScreen';
 import { View, Text, StyleSheet } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -39,7 +42,12 @@ const AppNavigator = () => {
         }}
       >
         {isAuthenticated ? (
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <>
+            <Stack.Screen name="Dashboard" component={DashboardScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="BarangayID" component={BarangayIDScreen} />
+            <Stack.Screen name="Contacts" component={ContactsScreen} />
+          </>
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
