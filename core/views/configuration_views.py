@@ -21,7 +21,7 @@ class ConfigurationDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 @api_view(['GET', 'POST'])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.AllowAny])
 def settings_view(request):
     if request.method == 'GET':
         settings = {}

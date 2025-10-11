@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { authAPI } from '../services/api';
+import { authAPI, settingsAPI } from '../services/api';
 import Alert from './Alert';
 
 const Settings = () => {
@@ -15,27 +15,109 @@ const Settings = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  const getInitialBarangayData = () => {
+    const saved = localStorage.getItem('barangayData');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Error parsing saved barangay data:', e);
+      }
+    }
+    return {
+      barangayName: 'Barangay Sample',
+      barangayCaptain: 'Juan Dela Cruz',
+      municipality: 'Sample City',
+      province: 'Sample Province',
+      contactNumber: '+63 912 345 6789',
+      emailAddress: 'barangay@sample.com',
+      address: '123 Main Street, Sample Barangay, Sample City, Sample Province'
+    };
+  };
+
+  const [barangayData, setBarangayData] = useState(getInitialBarangayData());
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const fileInputRef = useRef(null);
 
-  const handleLogoUpload = (event) => {
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const localData = localStorage.getItem('barangayData');
+        if (localData) {
+          const parsedData = JSON.parse(localData);
+          setBarangayData(parsedData);
+        } else {
+          const settings = await settingsAPI.getSettings();
+          if (settings && Object.keys(settings).length > 0) {
+            const newBarangayData = {
+              barangayName: settings.barangayName || settings.barangay_name || 'Barangay Sample',
+              barangayCaptain: settings.barangayCaptain || settings.barangay_captain || 'Juan Dela Cruz',
+              municipality: settings.municipality || 'Sample City',
+              province: settings.province || 'Sample Province',
+              contactNumber: settings.contactNumber || settings.contact_number || '+63 912 345 6789',
+              emailAddress: settings.emailAddress || settings.email || 'barangay@sample.com',
+              address: settings.address || '123 Main Street, Sample Barangay, Sample City, Sample Province'
+            };
+            setBarangayData(newBarangayData);
+            localStorage.setItem('barangayData', JSON.stringify(newBarangayData));
+          }
+        }
+        
+        const savedLogo = localStorage.getItem('customLogo');
+        if (savedLogo) {
+          setLogoPreview(savedLogo);
+        }
+        
+        const savedColor = localStorage.getItem('sidebarColor');
+        if (savedColor) {
+          setSidebarColor(savedColor);
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const handleLogoUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
       setLogoFile(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setLogoPreview(e.target.result);
-        localStorage.setItem('customLogo', e.target.result);
+      reader.onload = async (e) => {
+        const logoData = e.target.result;
+        setLogoPreview(logoData);
+        localStorage.setItem('customLogo', logoData);
+        
+        try {
+          await settingsAPI.updateSettings({
+            customLogo: logoData,
+            sidebarColor: sidebarColor
+          });
+          showAlert('success', 'Logo saved successfully');
+        } catch (error) {
+          showAlert('error', 'Failed to save logo to database');
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleColorChange = (color) => {
+  const handleColorChange = async (color) => {
     setSidebarColor(color);
     localStorage.setItem('sidebarColor', color);
     document.documentElement.style.setProperty('--sidebar-color', color);
+    
+    try {
+      await settingsAPI.updateSettings({
+        customLogo: logoPreview,
+        sidebarColor: color
+      });
+      showAlert('success', 'Color saved successfully');
+    } catch (error) {
+      showAlert('error', 'Failed to save color to database');
+    }
     
     const event = new CustomEvent('sidebarColorChange', { detail: { color } });
     window.dispatchEvent(event);
@@ -44,6 +126,45 @@ const Settings = () => {
   const showAlert = (type, message) => {
     setAlert({ show: true, type, message });
     setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
+
+  const handleBarangayDataChange = (field, value) => {
+    setBarangayData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      localStorage.setItem('barangayData', JSON.stringify(newData));
+      return newData;
+    });
+  };
+
+  const handleSaveBarangayData = async () => {
+    setLoading(true);
+    try {
+      localStorage.setItem('barangayData', JSON.stringify(barangayData));
+      
+      const settingsToSave = {
+        barangayName: barangayData.barangayName,
+        barangay_name: barangayData.barangayName,
+        barangayCaptain: barangayData.barangayCaptain,
+        barangay_captain: barangayData.barangayCaptain,
+        municipality: barangayData.municipality,
+        province: barangayData.province,
+        contactNumber: barangayData.contactNumber,
+        contact_number: barangayData.contactNumber,
+        emailAddress: barangayData.emailAddress,
+        email: barangayData.emailAddress,
+        address: barangayData.address
+      };
+      
+      await settingsAPI.updateSettings(settingsToSave);
+      showAlert('success', 'Barangay information saved successfully');
+    } catch (error) {
+      showAlert('error', 'Failed to save barangay information');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePasswordChange = async (e) => {
@@ -137,7 +258,8 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700">Barangay Name</label>
                     <input
                       type="text"
-                      defaultValue="Barangay Sample"
+                      value={barangayData.barangayName}
+                      onChange={(e) => handleBarangayDataChange('barangayName', e.target.value)}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -145,7 +267,8 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700">Barangay Captain</label>
                     <input
                       type="text"
-                      defaultValue="Juan Dela Cruz"
+                      value={barangayData.barangayCaptain}
+                      onChange={(e) => handleBarangayDataChange('barangayCaptain', e.target.value)}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -153,7 +276,8 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700">Municipality/City</label>
                     <input
                       type="text"
-                      defaultValue="Sample City"
+                      value={barangayData.municipality}
+                      onChange={(e) => handleBarangayDataChange('municipality', e.target.value)}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -161,7 +285,8 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700">Province</label>
                     <input
                       type="text"
-                      defaultValue="Sample Province"
+                      value={barangayData.province}
+                      onChange={(e) => handleBarangayDataChange('province', e.target.value)}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -169,7 +294,8 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700">Contact Number</label>
                     <input
                       type="text"
-                      defaultValue="+63 912 345 6789"
+                      value={barangayData.contactNumber}
+                      onChange={(e) => handleBarangayDataChange('contactNumber', e.target.value)}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -177,7 +303,8 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700">Email Address</label>
                     <input
                       type="email"
-                      defaultValue="barangay@sample.com"
+                      value={barangayData.emailAddress}
+                      onChange={(e) => handleBarangayDataChange('emailAddress', e.target.value)}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -186,13 +313,18 @@ const Settings = () => {
                   <label className="block text-sm font-medium text-gray-700">Address</label>
                   <textarea
                     rows={3}
-                    defaultValue="123 Main Street, Sample Barangay, Sample City, Sample Province"
+                    value={barangayData.address}
+                    onChange={(e) => handleBarangayDataChange('address', e.target.value)}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div className="mt-6 flex justify-end">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Save Changes
+                  <button 
+                    onClick={handleSaveBarangayData}
+                    disabled={loading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    {loading ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </div>
