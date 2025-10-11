@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usersAPI } from '../services/api';
+import Alert from './Alert';
+import ConfirmationDialog from './ConfirmationDialog';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -9,6 +11,8 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, username: '' });
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -19,9 +23,10 @@ const UserManagement = () => {
     confirm_password: ''
   });
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -29,7 +34,7 @@ const UserManagement = () => {
       const response = await usersAPI.getUsers();
       setUsers(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      showAlert('error', 'Failed to load users data');
     } finally {
       setLoading(false);
     }
@@ -37,12 +42,38 @@ const UserManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (formData.password !== formData.confirm_password) {
-        alert('Passwords do not match');
-        return;
-      }
+    
+    if (!formData.username.trim()) {
+      showAlert('error', 'Username is required');
+      return;
+    }
+    
+    if (!formData.email.trim()) {
+      showAlert('error', 'Email is required');
+      return;
+    }
+    
+    if (!formData.first_name.trim()) {
+      showAlert('error', 'First name is required');
+      return;
+    }
+    
+    if (!formData.last_name.trim()) {
+      showAlert('error', 'Last name is required');
+      return;
+    }
+    
+    if (!editingUser && !formData.password.trim()) {
+      showAlert('error', 'Password is required');
+      return;
+    }
+    
+    if (formData.password !== formData.confirm_password) {
+      showAlert('error', 'Passwords do not match');
+      return;
+    }
 
+    try {
       const submitData = {
         ...formData,
         password: formData.password
@@ -51,15 +82,17 @@ const UserManagement = () => {
 
       if (editingUser) {
         await usersAPI.updateUser(editingUser.id, submitData);
+        showAlert('success', 'User updated successfully');
       } else {
         await usersAPI.createUser(submitData);
+        showAlert('success', 'User created successfully');
       }
       await fetchUsers();
       setShowForm(false);
       setEditingUser(null);
       resetForm();
     } catch (error) {
-      console.error('Error saving user:', error);
+      showAlert('error', 'Failed to save user');
     }
   };
 
@@ -78,14 +111,28 @@ const UserManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await usersAPI.deleteUser(id);
-        await fetchUsers();
-      } catch (error) {
-        console.error('Error deleting user:', error);
-      }
+    const user = users.find(u => u.id === id);
+    setDeleteConfirm({ 
+      show: true, 
+      id: id, 
+      username: user?.username || 'this user'
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await usersAPI.deleteUser(deleteConfirm.id);
+      showAlert('success', 'User deleted successfully');
+      await fetchUsers();
+    } catch (error) {
+      showAlert('error', 'Failed to delete user');
+    } finally {
+      setDeleteConfirm({ show: false, id: null, username: '' });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, id: null, username: '' });
   };
 
   const resetForm = () => {
@@ -396,6 +443,23 @@ const UserManagement = () => {
           </div>
         </div>
       )}
+
+      <Alert
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ show: false, type: '', message: '' })}
+      />
+
+      <ConfirmationDialog
+        show={deleteConfirm.show}
+        title="Delete User"
+        message={`Are you sure you want to delete ${deleteConfirm.username}? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

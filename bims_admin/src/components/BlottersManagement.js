@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { blottersAPI } from '../services/api';
+import Alert from './Alert';
+import ConfirmationDialog from './ConfirmationDialog';
 
 const BlottersManagement = () => {
   const [blotters, setBlotters] = useState([]);
@@ -11,6 +13,8 @@ const BlottersManagement = () => {
   const [filterType, setFilterType] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, blotterNumber: '' });
   const [formData, setFormData] = useState({
     complainant_name: '',
     complainant_address: '',
@@ -26,6 +30,11 @@ const BlottersManagement = () => {
     resolution: '',
   });
 
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -35,7 +44,7 @@ const BlottersManagement = () => {
       const response = await blottersAPI.getBlotters();
       setBlotters(response.data.results || response.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      showAlert('error', 'Failed to load blotters data');
     } finally {
       setLoading(false);
     }
@@ -43,6 +52,32 @@ const BlottersManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.complainant_name.trim()) {
+      showAlert('error', 'Complainant name is required');
+      return;
+    }
+    
+    if (!formData.respondent_name.trim()) {
+      showAlert('error', 'Respondent name is required');
+      return;
+    }
+    
+    if (!formData.incident_type.trim()) {
+      showAlert('error', 'Incident type is required');
+      return;
+    }
+    
+    if (!formData.incident_date) {
+      showAlert('error', 'Incident date is required');
+      return;
+    }
+    
+    if (!formData.summary.trim()) {
+      showAlert('error', 'Summary is required');
+      return;
+    }
+
     try {
       const submitData = {
         ...formData,
@@ -51,15 +86,17 @@ const BlottersManagement = () => {
       
       if (editingBlotter) {
         await blottersAPI.updateBlotter(editingBlotter.id, submitData);
+        showAlert('success', 'Blotter updated successfully');
       } else {
         await blottersAPI.createBlotter(submitData);
+        showAlert('success', 'Blotter created successfully');
       }
       await fetchData();
       setShowForm(false);
       setEditingBlotter(null);
       resetForm();
     } catch (error) {
-      console.error('Error saving blotter:', error);
+      showAlert('error', 'Failed to save blotter');
     }
   };
 
@@ -83,14 +120,28 @@ const BlottersManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this blotter record?')) {
-      try {
-        await blottersAPI.deleteBlotter(id);
-        await fetchData();
-      } catch (error) {
-        console.error('Error deleting blotter:', error);
-      }
+    const blotter = blotters.find(b => b.id === id);
+    setDeleteConfirm({ 
+      show: true, 
+      id: id, 
+      blotterNumber: blotter?.blotter_number || 'this blotter record'
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await blottersAPI.deleteBlotter(deleteConfirm.id);
+      showAlert('success', 'Blotter deleted successfully');
+      await fetchData();
+    } catch (error) {
+      showAlert('error', 'Failed to delete blotter');
+    } finally {
+      setDeleteConfirm({ show: false, id: null, blotterNumber: '' });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, id: null, blotterNumber: '' });
   };
 
   const handleExport = () => {
@@ -538,6 +589,23 @@ const BlottersManagement = () => {
           </div>
         </div>
       )}
+
+      <Alert
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ show: false, type: '', message: '' })}
+      />
+
+      <ConfirmationDialog
+        show={deleteConfirm.show}
+        title="Delete Blotter Record"
+        message={`Are you sure you want to delete ${deleteConfirm.blotterNumber}? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

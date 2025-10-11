@@ -1,74 +1,53 @@
-# B-SIMS (Barangay Smart Information Management System)
-
-## Overview
-A comprehensive barangay management system built with Django REST API backend and React.js frontend.
-
-## Features
-- **Resident Management**: Complete CRUD operations with QR code generation
-- **Household Management**: Family-based grouping and management
-- **Document Management**: Request tracking and PDF generation
-- **Blotter System**: Incident reporting and case tracking
-- **Reports & Analytics**: Comprehensive statistics dashboard
-- **Settings**: System configuration and preferences
-- **Real-time Clock**: Philippines timezone display
-
-## Tech Stack
-- **Backend**: Django + Django REST Framework + PostgreSQL
-- **Frontend**: React.js + TailwindCSS
-- **Authentication**: JWT (JSON Web Tokens)
-- **Database**: SQLite (development) / PostgreSQL (production)
+# B-SMIS (Barangay Smart Information Management System)
 
 ## Project Structure
+
 ```
-bims_backend/          # Django backend
-├── accounts/          # User authentication
-├── residents/         # Resident management
-├── core/             # System configuration
-└── bims_backend/     # Main settings
-
-bims_admin/           # React frontend
-├── src/
-│   ├── components/   # React components
-│   ├── contexts/     # React contexts
-│   └── services/     # API services
-└── public/           # Static files
+B-SMIS/
+├── bims_backend/          # Django backend API
+├── bims_admin/           # React frontend admin panel
+├── static/              # Static files
+│   ├── qr_codes/        # QR code images
+│   ├── uploads/         # User uploads
+│   └── logos/           # Custom logos
+├── accounts/            # User authentication
+├── residents/           # Resident management
+├── financial/           # Financial management
+├── projects/            # Project management
+├── announcements/       # Announcement system
+├── core/               # Core utilities
+└── requirements.txt     # Python dependencies
 ```
 
-## Installation & Setup
+## Features
 
-### Backend Setup
+- **Resident Management**: Complete resident database with household tracking
+- **Financial Management**: Income, expenses, and transparency reporting
+- **Project Management**: Community projects with photo documentation
+- **Announcement System**: Public announcements and notifications
+- **Document Management**: Document requests and QR code generation
+- **User Management**: Role-based access control
+- **Settings**: Customizable appearance and configuration
+
+## Technology Stack
+
+- **Backend**: Django REST Framework
+- **Frontend**: React with Tailwind CSS
+- **Database**: SQLite (development)
+- **Authentication**: JWT tokens
+- **File Storage**: Local file system
+
+## Installation
+
 1. Clone the repository
-2. Create virtual environment: `python -m venv venv`
-3. Activate virtual environment: `source venv/bin/activate`
-4. Install dependencies: `pip install -r requirements.txt`
-5. Run migrations: `python manage.py migrate`
-6. Create superuser: `python manage.py createsuperuser`
-7. Start server: `python manage.py runserver`
+2. Install Python dependencies: `pip install -r requirements.txt`
+3. Install Node.js dependencies: `cd bims_admin && npm install`
+4. Run migrations: `python manage.py migrate`
+5. Start backend: `python manage.py runserver`
+6. Start frontend: `cd bims_admin && npm start`
 
-### Frontend Setup
-1. Navigate to frontend: `cd bims_admin`
-2. Install dependencies: `npm install`
-3. Start development server: `npm start`
+## Configuration
 
-## Default Credentials
-- **Username**: admin
-- **Password**: admin123
-
-## API Endpoints
-- Authentication: `/api/auth/`
-- Residents: `/api/residents/`
-- Settings: `/api/core/`
-
-## Phase Status
-- ✅ **Phase 1**: System Foundation & Architecture
-- ✅ **Phase 2**: Core Barangay Modules
-- 🔄 **Phase 3**: Advanced Features (Coming Soon)
-
-## Development Rules
-- No comments or icons in code
-- Well-organized project structure
-- Professional design standards
-- Enterprise-level architecture
-
-## License
-This project is proprietary software for barangay management systems.
+- Copy `env.example` to `.env` and configure environment variables
+- Customize settings in `bims_backend/settings.py`
+- Upload custom logos through the admin panel settings

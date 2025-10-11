@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { householdsAPI, puroksAPI } from '../services/api';
+import Alert from './Alert';
+import ConfirmationDialog from './ConfirmationDialog';
 
 const HouseholdsManagement = () => {
   const [households, setHouseholds] = useState([]);
@@ -11,11 +13,18 @@ const HouseholdsManagement = () => {
   const [filterPurok, setFilterPurok] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, address: '' });
   const [formData, setFormData] = useState({
     purok: '',
     address: '',
     contact_number: '',
   });
+
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
 
   useEffect(() => {
     fetchData();
@@ -30,7 +39,7 @@ const HouseholdsManagement = () => {
       setHouseholds(householdsRes.data.results || householdsRes.data);
       setPuroks(puroksRes.data.results || puroksRes.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      showAlert('error', 'Failed to load households data');
     } finally {
       setLoading(false);
     }
@@ -38,18 +47,31 @@ const HouseholdsManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.purok) {
+      showAlert('error', 'Purok is required');
+      return;
+    }
+    
+    if (!formData.address.trim()) {
+      showAlert('error', 'Address is required');
+      return;
+    }
+
     try {
       if (editingHousehold) {
         await householdsAPI.updateHousehold(editingHousehold.id, formData);
+        showAlert('success', 'Household updated successfully');
       } else {
         await householdsAPI.createHousehold(formData);
+        showAlert('success', 'Household added successfully');
       }
       await fetchData();
       setShowForm(false);
       setEditingHousehold(null);
       resetForm();
     } catch (error) {
-      console.error('Error saving household:', error);
+      showAlert('error', 'Failed to save household');
     }
   };
 
@@ -64,14 +86,28 @@ const HouseholdsManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this household?')) {
-      try {
-        await householdsAPI.deleteHousehold(id);
-        await fetchData();
-      } catch (error) {
-        console.error('Error deleting household:', error);
-      }
+    const household = households.find(h => h.id === id);
+    setDeleteConfirm({ 
+      show: true, 
+      id: id, 
+      address: household?.address || 'this household'
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await householdsAPI.deleteHousehold(deleteConfirm.id);
+      showAlert('success', 'Household deleted successfully');
+      await fetchData();
+    } catch (error) {
+      showAlert('error', 'Failed to delete household');
+    } finally {
+      setDeleteConfirm({ show: false, id: null, address: '' });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, id: null, address: '' });
   };
 
   const handleExport = () => {
@@ -402,6 +438,23 @@ const HouseholdsManagement = () => {
         accept=".csv"
         onChange={handleImport}
         style={{ display: 'none' }}
+      />
+
+      <Alert
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ show: false, type: '', message: '' })}
+      />
+
+      <ConfirmationDialog
+        show={deleteConfirm.show}
+        title="Delete Household"
+        message={`Are you sure you want to delete ${deleteConfirm.address}? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
     </div>
   );

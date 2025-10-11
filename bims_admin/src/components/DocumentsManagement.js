@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { documentsAPI, residentsAPI } from '../services/api';
+import Alert from './Alert';
+import ConfirmationDialog from './ConfirmationDialog';
 
 const DocumentsManagement = () => {
   const [documentRequests, setDocumentRequests] = useState([]);
@@ -13,6 +15,8 @@ const DocumentsManagement = () => {
   const [filterType, setFilterType] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, requestNumber: '' });
   const [formData, setFormData] = useState({
     resident: '',
     document_type: '',
@@ -21,6 +25,11 @@ const DocumentsManagement = () => {
     status: 'pending',
     remarks: '',
   });
+
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
 
   useEffect(() => {
     fetchData();
@@ -37,7 +46,7 @@ const DocumentsManagement = () => {
       setDocumentTypes(typesRes.data.results || typesRes.data);
       setResidents(residentsRes.data.results || residentsRes.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      showAlert('error', 'Failed to load documents data');
     } finally {
       setLoading(false);
     }
@@ -45,6 +54,22 @@ const DocumentsManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.resident) {
+      showAlert('error', 'Resident is required');
+      return;
+    }
+    
+    if (!formData.document_type) {
+      showAlert('error', 'Document type is required');
+      return;
+    }
+    
+    if (!formData.purpose.trim()) {
+      showAlert('error', 'Purpose is required');
+      return;
+    }
+
     try {
       const submitData = {
         ...formData,
@@ -55,15 +80,17 @@ const DocumentsManagement = () => {
       
       if (editingRequest) {
         await documentsAPI.updateDocumentRequest(editingRequest.id, submitData);
+        showAlert('success', 'Document request updated successfully');
       } else {
         await documentsAPI.createDocumentRequest(submitData);
+        showAlert('success', 'Document request created successfully');
       }
       await fetchData();
       setShowForm(false);
       setEditingRequest(null);
       resetForm();
     } catch (error) {
-      console.error('Error saving document request:', error);
+      showAlert('error', 'Failed to save document request');
     }
   };
 
@@ -81,14 +108,28 @@ const DocumentsManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this document request?')) {
-      try {
-        await documentsAPI.deleteDocumentRequest(id);
-        await fetchData();
-      } catch (error) {
-        console.error('Error deleting document request:', error);
-      }
+    const request = documentRequests.find(r => r.id === id);
+    setDeleteConfirm({ 
+      show: true, 
+      id: id, 
+      requestNumber: request?.request_number || 'this document request'
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await documentsAPI.deleteDocumentRequest(deleteConfirm.id);
+      showAlert('success', 'Document request deleted successfully');
+      await fetchData();
+    } catch (error) {
+      showAlert('error', 'Failed to delete document request');
+    } finally {
+      setDeleteConfirm({ show: false, id: null, requestNumber: '' });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, id: null, requestNumber: '' });
   };
 
   const handleExport = () => {
@@ -445,6 +486,23 @@ const DocumentsManagement = () => {
           </div>
         </div>
       )}
+
+      <Alert
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ show: false, type: '', message: '' })}
+      />
+
+      <ConfirmationDialog
+        show={deleteConfirm.show}
+        title="Delete Document Request"
+        message={`Are you sure you want to delete ${deleteConfirm.requestNumber}? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

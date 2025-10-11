@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { announcementsAPI } from '../services/api';
+import Alert from './Alert';
+import ConfirmationDialog from './ConfirmationDialog';
 
 const AnnouncementManagement = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -11,6 +13,8 @@ const AnnouncementManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, title: '' });
 
   const [formData, setFormData] = useState({
     title: '',
@@ -26,17 +30,17 @@ const AnnouncementManagement = () => {
     image: null
   });
 
-  useEffect(() => {
-    fetchAnnouncements();
-    fetchCategories();
-  }, []);
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
 
   const fetchAnnouncements = async () => {
     try {
       const response = await announcementsAPI.getAnnouncements();
       setAnnouncements(response.data.results || response.data || []);
     } catch (error) {
-      console.error('Error fetching announcements:', error);
+      showAlert('error', 'Failed to load announcements data');
     } finally {
       setLoading(false);
     }
@@ -47,7 +51,7 @@ const AnnouncementManagement = () => {
       const response = await announcementsAPI.getCategories();
       setCategories(response.data.results || response.data || []);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      showAlert('error', 'Failed to load categories data');
     }
   };
 
@@ -69,6 +73,22 @@ const AnnouncementManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.title.trim()) {
+      showAlert('error', 'Title is required');
+      return;
+    }
+    
+    if (!formData.content.trim()) {
+      showAlert('error', 'Content is required');
+      return;
+    }
+    
+    if (!formData.category) {
+      showAlert('error', 'Category is required');
+      return;
+    }
+
     try {
       const data = {
         ...formData,
@@ -77,8 +97,10 @@ const AnnouncementManagement = () => {
 
       if (editingAnnouncement) {
         await announcementsAPI.updateAnnouncement(editingAnnouncement.id, data);
+        showAlert('success', 'Announcement updated successfully');
       } else {
         await announcementsAPI.createAnnouncement(data);
+        showAlert('success', 'Announcement created successfully');
       }
 
       setShowForm(false);
@@ -86,7 +108,7 @@ const AnnouncementManagement = () => {
       resetForm();
       fetchAnnouncements();
     } catch (error) {
-      console.error('Error saving announcement:', error);
+      showAlert('error', 'Failed to save announcement');
     }
   };
 
@@ -109,14 +131,28 @@ const AnnouncementManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this announcement?')) {
-      try {
-        await announcementsAPI.deleteAnnouncement(id);
-        fetchAnnouncements();
-      } catch (error) {
-        console.error('Error deleting announcement:', error);
-      }
+    const announcement = announcements.find(a => a.id === id);
+    setDeleteConfirm({ 
+      show: true, 
+      id: id, 
+      title: announcement?.title || 'this announcement'
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await announcementsAPI.deleteAnnouncement(deleteConfirm.id);
+      showAlert('success', 'Announcement deleted successfully');
+      fetchAnnouncements();
+    } catch (error) {
+      showAlert('error', 'Failed to delete announcement');
+    } finally {
+      setDeleteConfirm({ show: false, id: null, title: '' });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, id: null, title: '' });
   };
 
   const handlePublish = async (id) => {
@@ -528,6 +564,23 @@ const AnnouncementManagement = () => {
           </div>
         </div>
       )}
+
+      <Alert
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ show: false, type: '', message: '' })}
+      />
+
+      <ConfirmationDialog
+        show={deleteConfirm.show}
+        title="Delete Announcement"
+        message={`Are you sure you want to delete "${deleteConfirm.title}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

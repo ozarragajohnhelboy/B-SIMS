@@ -1,28 +1,48 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Alert from './Alert';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
-  const { login, isLoading, error, clearError } = useAuth();
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    if (error) clearError();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.username.trim()) {
+      showAlert('error', 'Username is required');
+      return;
+    }
+    
+    if (!formData.password.trim()) {
+      showAlert('error', 'Password is required');
+      return;
+    }
+
     const result = await login(formData);
     if (result.success) {
-      navigate('/dashboard');
+      showAlert('success', 'Login successful! Redirecting...');
+      setTimeout(() => navigate('/dashboard'), 1000);
+    } else {
+      showAlert('error', result.error || 'Login failed');
     }
   };
 
@@ -71,12 +91,6 @@ const Login = () => {
             </div>
           </div>
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
-            </div>
-          )}
-
           <div>
             <button
               type="submit"
@@ -87,6 +101,13 @@ const Login = () => {
             </button>
           </div>
         </form>
+
+        <Alert
+          show={alert.show}
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert({ show: false, type: '', message: '' })}
+        />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { residentsAPI, documentsAPI, blottersAPI, announcementsAPI, coreAPI } from '../services/api';
+import Alert from './Alert';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,6 +30,7 @@ ChartJS.register(
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const [stats, setStats] = useState({
     residents: { total_residents: 0, voters: 0, pwd: 0, senior_citizens: 0 },
     documents: { total_requests: 0, pending_requests: 0, approved_requests: 0, released_requests: 0 },
@@ -49,6 +51,11 @@ const Dashboard = () => {
     blotters: []
   });
   const [timePeriod, setTimePeriod] = useState('month');
+
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
 
   useEffect(() => {
     fetchStats();
@@ -71,7 +78,7 @@ const Dashboard = () => {
         announcements: announcementsRes.data,
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      showAlert('error', 'Failed to load dashboard statistics');
     } finally {
       setLoading(false);
     }
@@ -82,7 +89,7 @@ const Dashboard = () => {
       const response = await coreAPI.getRecentActivities(20, dateFilter.from || null, dateFilter.to || null);
       setRecentActivities(response.data);
     } catch (error) {
-      console.error('Error fetching recent activities:', error);
+      showAlert('error', 'Failed to load recent activities');
     }
   };
 
@@ -489,6 +496,13 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      <Alert
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ show: false, type: '', message: '' })}
+      />
     </div>
   );
 };

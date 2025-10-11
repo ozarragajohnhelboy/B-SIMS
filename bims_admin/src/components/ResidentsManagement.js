@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { residentsAPI, puroksAPI, householdsAPI } from '../services/api';
+import Alert from './Alert';
+import ConfirmationDialog from './ConfirmationDialog';
 
 const ResidentsManagement = () => {
   const [residents, setResidents] = useState([]);
@@ -13,6 +15,8 @@ const ResidentsManagement = () => {
   const [filterGender, setFilterGender] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, name: '' });
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -32,6 +36,11 @@ const ResidentsManagement = () => {
     is_senior_citizen: false,
   });
 
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -47,7 +56,7 @@ const ResidentsManagement = () => {
       setPuroks(puroksRes.data.results || puroksRes.data);
       setHouseholds(householdsRes.data.results || householdsRes.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      showAlert('error', 'Failed to load residents data');
     } finally {
       setLoading(false);
     }
@@ -55,18 +64,41 @@ const ResidentsManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.first_name.trim()) {
+      showAlert('error', 'First name is required');
+      return;
+    }
+    
+    if (!formData.last_name.trim()) {
+      showAlert('error', 'Last name is required');
+      return;
+    }
+    
+    if (!formData.birth_date) {
+      showAlert('error', 'Birth date is required');
+      return;
+    }
+    
+    if (!formData.gender) {
+      showAlert('error', 'Gender is required');
+      return;
+    }
+
     try {
       if (editingResident) {
         await residentsAPI.updateResident(editingResident.id, formData);
+        showAlert('success', 'Resident updated successfully');
       } else {
         await residentsAPI.createResident(formData);
+        showAlert('success', 'Resident added successfully');
       }
       await fetchData();
       setShowForm(false);
       setEditingResident(null);
       resetForm();
     } catch (error) {
-      console.error('Error saving resident:', error);
+      showAlert('error', 'Failed to save resident');
     }
   };
 
@@ -94,14 +126,28 @@ const ResidentsManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this resident?')) {
-      try {
-        await residentsAPI.deleteResident(id);
-        await fetchData();
-      } catch (error) {
-        console.error('Error deleting resident:', error);
-      }
+    const resident = residents.find(r => r.id === id);
+    setDeleteConfirm({ 
+      show: true, 
+      id: id, 
+      name: `${resident?.first_name} ${resident?.last_name}` 
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await residentsAPI.deleteResident(deleteConfirm.id);
+      showAlert('success', 'Resident deleted successfully');
+      await fetchData();
+    } catch (error) {
+      showAlert('error', 'Failed to delete resident');
+    } finally {
+      setDeleteConfirm({ show: false, id: null, name: '' });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, id: null, name: '' });
   };
 
   const handleExport = () => {
@@ -549,6 +595,23 @@ const ResidentsManagement = () => {
         accept=".csv"
         onChange={handleImport}
         style={{ display: 'none' }}
+      />
+
+      <Alert
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ show: false, type: '', message: '' })}
+      />
+
+      <ConfirmationDialog
+        show={deleteConfirm.show}
+        title="Delete Resident"
+        message={`Are you sure you want to delete ${deleteConfirm.name}? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
     </div>
   );

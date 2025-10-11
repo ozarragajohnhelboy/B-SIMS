@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
+import Alert from './Alert';
 
 const Settings = () => {
   const { user, updateUser } = useAuth();
@@ -15,6 +16,7 @@ const Settings = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const fileInputRef = useRef(null);
 
   const handleLogoUpload = (event) => {
@@ -39,10 +41,15 @@ const Settings = () => {
     window.dispatchEvent(event);
   };
 
+  const showAlert = (type, message) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
+  };
+
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New passwords do not match');
+      showAlert('error', 'New passwords do not match');
       return;
     }
 
@@ -52,7 +59,7 @@ const Settings = () => {
         current_password: passwordData.currentPassword,
         new_password: passwordData.newPassword
       });
-      alert('Password changed successfully');
+      showAlert('success', 'Password changed successfully');
       setShowPasswordModal(false);
       setPasswordData({
         currentPassword: '',
@@ -60,7 +67,7 @@ const Settings = () => {
         confirmPassword: ''
       });
     } catch (error) {
-      alert('Failed to change password: ' + (error.response?.data?.message || error.message));
+      showAlert('error', 'Failed to change password: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
@@ -202,10 +209,10 @@ const Settings = () => {
                       <img
                         src={logoPreview}
                         alt="Custom Logo"
-                        className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
+                        className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
+                      <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
                         <span className="text-gray-400 text-sm">Logo</span>
                       </div>
                     )}
@@ -225,7 +232,7 @@ const Settings = () => {
                       className="hidden"
                     />
                     <p className="text-sm text-gray-500 mt-2">
-                      Recommended size: 64x64 pixels. Supported formats: JPG, PNG, GIF
+                      Recommended size: 128x128 pixels. Supported formats: JPG, PNG, GIF
                     </p>
                   </div>
                 </div>
@@ -361,6 +368,13 @@ const Settings = () => {
           </div>
         </div>
       )}
+
+      <Alert
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ show: false, type: '', message: '' })}
+      />
     </div>
   );
 };
