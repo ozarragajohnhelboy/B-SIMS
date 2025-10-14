@@ -57,130 +57,130 @@ const BarangayIDScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Barangay ID</Text>
-        <View style={{ width: 50 }} />
+      <View style={styles.headerContainer}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <View style={styles.backIconContainer}>
+              <View style={styles.backIconArrow} />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Digital ID</Text>
+          <View style={{ width: 40 }} />
+        </View>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={sidebarColor} />
-            <Text style={styles.loadingText}>Loading ID...</Text>
+            <ActivityIndicator size="large" color="#3B82F6" />
+            <Text style={styles.loadingText}>Loading your ID...</Text>
           </View>
         ) : (
-          <View style={styles.idCard}>
-            <View style={[styles.idHeader, { backgroundColor: sidebarColor }]}>
-              <View style={styles.idHeaderContent}>
-                {customLogo ? (
-                  <Image source={{ uri: customLogo }} style={styles.idLogo} />
-                ) : (
-                  <View style={styles.idLogoPlaceholder}>
-                    <Text style={styles.idLogoText}>{barangayName[0]}</Text>
-                  </View>
-                )}
-                <Text style={styles.idBarangayName}>{barangayName}</Text>
-                <Text style={styles.idSubtitle}>BARANGAY IDENTIFICATION CARD</Text>
-              </View>
-            </View>
-
-            <View style={styles.idBody}>
-              <View style={styles.photoContainer}>
-                <View style={styles.photoPlaceholder}>
-                  <Text style={styles.photoText}>
-                    {user?.first_name?.[0]}{user?.last_name?.[0]}
-                  </Text>
+          <>
+            <View style={styles.idCard}>
+              <View style={[styles.idHeader, { backgroundColor: sidebarColor }]}>
+                <View style={styles.headerPattern} />
+                <View style={styles.idHeaderContent}>
+                  {customLogo ? (
+                    <Image source={{ uri: customLogo }} style={styles.idLogo} />
+                  ) : (
+                    <View style={styles.idLogoPlaceholder}>
+                      <Text style={styles.idLogoText}>{barangayName[0]}</Text>
+                    </View>
+                  )}
+                  <Text style={styles.idBarangayName}>{barangayName}</Text>
+                  <Text style={styles.idSubtitle}>BARANGAY ID CARD</Text>
                 </View>
               </View>
 
-              <View style={styles.infoContainer}>
-                <Text style={styles.idName}>
-                  {residentDetails?.full_name || `${user?.first_name} ${user?.last_name}`}
-                </Text>
-                <Text style={styles.idResidentId}>ID: {residentDetails?.barangay_id || 'N/A'}</Text>
-
-                <View style={styles.idDetailRow}>
-                  <Text style={styles.idLabel}>Date of Birth:</Text>
-                  <Text style={styles.idValue}>{residentDetails?.birth_date || 'N/A'}</Text>
-                </View>
-
-                <View style={styles.idDetailRow}>
-                  <Text style={styles.idLabel}>Age:</Text>
-                  <Text style={styles.idValue}>{residentDetails?.age || 'N/A'} years old</Text>
-                </View>
-
-                <View style={styles.idDetailRow}>
-                  <Text style={styles.idLabel}>Address:</Text>
-                  <Text style={styles.idValue} numberOfLines={2}>
-                    {residentDetails?.purok_name ? `${residentDetails.purok_name}, ${barangayName}` : barangayName}
-                  </Text>
-                </View>
-
-                <View style={styles.idDetailRow}>
-                  <Text style={styles.idLabel}>Household:</Text>
-                  <Text style={styles.idValue}>{residentDetails?.household_number || 'N/A'}</Text>
-                </View>
-
-                <View style={styles.idDetailRow}>
-                  <Text style={styles.idLabel}>Emergency Contact:</Text>
-                  <Text style={styles.idValue}>
-                    {residentDetails?.emergency_contact_number || 'Not set'}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.qrSection}>
-              <View style={styles.qrContainer}>
-                {residentDetails?.qr_code ? (
-                  <Image 
-                    source={{ uri: residentDetails.qr_code }} 
-                    style={styles.qrImage}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <View style={styles.qrPlaceholder}>
-                    <View style={styles.qrGrid}>
-                      <View style={styles.qrBlock} />
-                      <View style={styles.qrBlock} />
-                      <View style={styles.qrBlock} />
-                      <View style={styles.qrBlock} />
-                      <View style={styles.qrBlock} />
-                      <View style={styles.qrBlock} />
-                      <View style={styles.qrBlock} />
-                      <View style={styles.qrBlock} />
-                      <View style={styles.qrBlock} />
+              <View style={styles.idBody}>
+                <View style={styles.profileSection}>
+                  <View style={styles.photoContainer}>
+                    <View style={styles.photoPlaceholder}>
+                      <Text style={styles.photoText}>
+                        {user?.first_name?.[0]}{user?.last_name?.[0]}
+                      </Text>
                     </View>
                   </View>
-                )}
-                <Text style={styles.qrText}>Scan to verify identity</Text>
-                <Text style={styles.qrId}>{residentDetails?.barangay_id || 'N/A'}</Text>
+
+                  <View style={styles.nameSection}>
+                    <Text style={styles.idName}>
+                      {residentDetails?.full_name || `${user?.first_name} ${user?.last_name}`}
+                    </Text>
+                    <View style={styles.idBadgeContainer}>
+                      <Text style={styles.idBadge}>{residentDetails?.barangay_id || 'N/A'}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.detailsSection}>
+                  <View style={styles.idDetailRow}>
+                    <Text style={styles.idLabel}>Birth Date</Text>
+                    <Text style={styles.idValue}>{residentDetails?.birth_date || 'N/A'}</Text>
+                  </View>
+
+                  <View style={styles.idDetailRow}>
+                    <Text style={styles.idLabel}>Age</Text>
+                    <Text style={styles.idValue}>{residentDetails?.age || 'N/A'} years</Text>
+                  </View>
+
+                  <View style={styles.idDetailRow}>
+                    <Text style={styles.idLabel}>Purok</Text>
+                    <Text style={styles.idValue}>{residentDetails?.purok_name || 'N/A'}</Text>
+                  </View>
+
+                  <View style={styles.idDetailRow}>
+                    <Text style={styles.idLabel}>Household</Text>
+                    <Text style={styles.idValue}>{residentDetails?.household_number || 'N/A'}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.qrSection}>
+                  <View style={styles.qrContainer}>
+                    {residentDetails?.qr_code ? (
+                      <Image 
+                        source={{ uri: residentDetails.qr_code }} 
+                        style={styles.qrImage}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <View style={styles.qrPlaceholder}>
+                        <View style={styles.qrGrid}>
+                          <View style={styles.qrBlock} />
+                          <View style={styles.qrBlock} />
+                          <View style={styles.qrBlock} />
+                          <View style={styles.qrBlock} />
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.qrInfo}>
+                    <Text style={styles.qrLabel}>SCAN TO VERIFY</Text>
+                    <Text style={styles.qrId}>{residentDetails?.barangay_id || 'N/A'}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.idFooter}>
+                  <Text style={styles.footerLabel}>Emergency Contact</Text>
+                  <Text style={styles.footerValue}>
+                    {residentDetails?.emergency_contact_number || 'Not provided'}
+                  </Text>
+                </View>
               </View>
             </View>
 
-            <View style={styles.idFooter}>
-              <Text style={styles.footerText}>
-                This card is the property of {barangayName}
-              </Text>
-              <Text style={styles.footerText}>
-                If found, please return to Barangay Hall
+            <View style={styles.infoCard}>
+              <Text style={styles.infoTitle}>Digital ID Information</Text>
+              <Text style={styles.infoText}>
+                Present this ID when accessing barangay services. The QR code provides instant verification at the Barangay Hall.
               </Text>
             </View>
-          </View>
+          </>
         )}
-
-        <View style={styles.noteCard}>
-          <Text style={styles.noteTitle}>Important Notes:</Text>
-          <Text style={styles.noteText}>
-            This is your official Barangay ID. Please keep it safe and present when requesting barangay services.
-          </Text>
-          <Text style={styles.noteText}>
-            The QR code can be scanned at the Barangay Hall for quick verification.
-          </Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -189,224 +189,296 @@ const BarangayIDScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#F9FAFB',
   },
-  header: {
+  headerContainer: {
+    backgroundColor: 'white',
+    paddingTop: 60,
+    paddingBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 16,
     paddingHorizontal: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   backButton: {
-    fontSize: 16,
-    color: '#3b82f6',
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIconContainer: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIconArrow: {
+    width: 12,
+    height: 12,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#6B7280',
+    transform: [{ rotate: '45deg' }],
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: '#111827',
+    letterSpacing: 0.3,
   },
   content: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    padding: 24,
+    paddingBottom: 40,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 100,
+    paddingVertical: 120,
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: 16,
     fontSize: 16,
-    color: '#64748b',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   idCard: {
     backgroundColor: 'white',
-    borderRadius: 16,
+    borderRadius: 24,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 12,
     marginBottom: 24,
   },
   idHeader: {
-    padding: 20,
+    padding: 24,
     alignItems: 'center',
+    position: 'relative',
+  },
+  headerPattern: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    transform: [{ translateX: 40 }, { translateY: -40 }],
   },
   idHeaderContent: {
     alignItems: 'center',
+    position: 'relative',
+    zIndex: 2,
   },
   idLogo: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
+    width: 64,
+    height: 64,
+    borderRadius: 16,
     marginBottom: 12,
     resizeMode: 'contain',
   },
   idLogoPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   idLogoText: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: 'white',
   },
   idBarangayName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: 0.5,
   },
   idSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: 'rgba(255, 255, 255, 0.9)',
-    letterSpacing: 1,
+    letterSpacing: 2,
+    fontWeight: '600',
   },
   idBody: {
-    padding: 20,
+    padding: 24,
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingBottom: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: '#F3F4F6',
   },
   photoContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
+    marginRight: 16,
   },
   photoPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#e2e8f0',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#EEF2FF',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#3B82F6',
   },
   photoText: {
-    fontSize: 48,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#64748b',
+    color: '#3B82F6',
   },
-  infoContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingTop: 16,
+  nameSection: {
+    flex: 1,
   },
   idName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
-    textAlign: 'center',
-    marginBottom: 4,
+    color: '#111827',
+    marginBottom: 8,
+    lineHeight: 26,
   },
-  idResidentId: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    marginBottom: 16,
+  idBadgeContainer: {
+    flexDirection: 'row',
+  },
+  idBadge: {
+    fontSize: 13,
+    color: '#6366F1',
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    fontWeight: '600',
+  },
+  detailsSection: {
+    marginBottom: 20,
   },
   idDetailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   idLabel: {
     fontSize: 14,
-    color: '#64748b',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   idValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1e293b',
+    color: '#111827',
   },
   qrSection: {
-    padding: 20,
-    backgroundColor: '#f8fafc',
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
   },
   qrContainer: {
-    alignItems: 'center',
+    marginRight: 16,
   },
   qrPlaceholder: {
-    width: 150,
-    height: 150,
+    width: 100,
+    height: 100,
     backgroundColor: 'white',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#e2e8f0',
-    marginBottom: 12,
+    borderColor: '#E5E7EB',
   },
   qrImage: {
-    width: 150,
-    height: 150,
+    width: 100,
+    height: 100,
     borderRadius: 12,
-    marginBottom: 12,
   },
   qrGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    width: 90,
-    height: 90,
+    width: 60,
+    height: 60,
   },
   qrBlock: {
-    width: 28,
-    height: 28,
-    backgroundColor: '#1e293b',
+    width: 14,
+    height: 14,
+    backgroundColor: '#111827',
     margin: 1,
   },
-  qrText: {
-    fontSize: 14,
-    color: '#64748b',
-    marginBottom: 4,
+  qrInfo: {
+    flex: 1,
+  },
+  qrLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 6,
   },
   qrId: {
-    fontSize: 12,
-    color: '#94a3b8',
-    fontWeight: '600',
+    fontSize: 16,
+    color: '#111827',
+    fontWeight: 'bold',
   },
   idFooter: {
+    backgroundColor: '#F9FAFB',
     padding: 16,
-    backgroundColor: '#f8fafc',
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  footerText: {
-    fontSize: 11,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  noteCard: {
-    backgroundColor: '#fffbeb',
     borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#fef3c7',
   },
-  noteTitle: {
-    fontSize: 14,
+  footerLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  footerValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  infoCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  infoTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#92400e',
-    marginBottom: 8,
+    color: '#111827',
+    marginBottom: 10,
   },
-  noteText: {
-    fontSize: 13,
-    color: '#78350f',
-    lineHeight: 20,
-    marginBottom: 8,
+  infoText: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 22,
   },
 });
 

@@ -55,59 +55,76 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Profile</Text>
-        <TouchableOpacity onPress={() => setEditing(!editing)}>
-          <Text style={styles.editButton}>{editing ? 'Cancel' : 'Edit'}</Text>
-        </TouchableOpacity>
+      <View style={styles.headerContainer}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <View style={styles.backIconContainer}>
+              <View style={styles.backIconArrow} />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Profile</Text>
+          <TouchableOpacity 
+            style={[styles.actionButton, editing && styles.cancelButton]} 
+            onPress={() => setEditing(!editing)}
+          >
+            <Text style={[styles.actionButtonText, editing && styles.cancelButtonText]}>
+              {editing ? 'Cancel' : 'Edit'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.first_name?.[0]}{user?.last_name?.[0]}
-            </Text>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.first_name?.[0]}{user?.last_name?.[0]}
+              </Text>
+            </View>
+            <View style={styles.avatarBadge} />
           </View>
           <Text style={styles.nameText}>{user?.first_name} {user?.last_name}</Text>
-          <Text style={styles.roleText}>Resident</Text>
+          <View style={styles.statusContainer}>
+            <View style={styles.statusDot} />
+            <Text style={styles.roleText}>Verified Resident</Text>
+          </View>
+          <View style={styles.idBadge}>
+            <Text style={styles.idBadgeText}>ID: {residentDetails?.barangay_id || 'N/A'}</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-          
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>First Name</Text>
-            <Text style={styles.value}>{user?.first_name || 'N/A'}</Text>
-          </View>
+          <View style={styles.card}>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Full Name</Text>
+              <Text style={styles.value}>{user?.first_name} {user?.last_name}</Text>
+            </View>
+            <View style={styles.divider} />
+            
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Date of Birth</Text>
+              <Text style={styles.value}>{residentDetails?.birth_date || 'N/A'}</Text>
+            </View>
+            <View style={styles.divider} />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Last Name</Text>
-            <Text style={styles.value}>{user?.last_name || 'N/A'}</Text>
-          </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Age</Text>
+              <Text style={styles.value}>{residentDetails?.age || 'N/A'} years old</Text>
+            </View>
+            <View style={styles.divider} />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Date of Birth</Text>
-            <Text style={styles.value}>
-              {residentDetails?.birth_date || 'N/A'}
-            </Text>
-          </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Gender</Text>
+              <Text style={styles.value}>{residentDetails?.gender || 'N/A'}</Text>
+            </View>
+            <View style={styles.divider} />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Gender</Text>
-            <Text style={styles.value}>
-              {residentDetails?.gender || 'N/A'}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Civil Status</Text>
-            <Text style={styles.value}>
-              {residentDetails?.civil_status || 'N/A'}
-            </Text>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Civil Status</Text>
+              <Text style={styles.value}>{residentDetails?.civil_status || 'N/A'}</Text>
+            </View>
           </View>
         </View>
 
@@ -115,7 +132,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Contact Information</Text>
           
           {editing ? (
-            <>
+            <View style={styles.card}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Contact Number</Text>
                 <TextInput
@@ -128,7 +145,7 @@ const ProfileScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email</Text>
+                <Text style={styles.inputLabel}>Email Address</Text>
                 <TextInput
                   style={styles.input}
                   value={profileData.email}
@@ -142,108 +159,105 @@ const ProfileScreen = ({ navigation }) => {
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonText}>Save Changes</Text>
               </TouchableOpacity>
-            </>
+            </View>
           ) : (
-            <>
-              <View style={styles.infoRow}>
+            <View style={styles.card}>
+              <View style={styles.infoItem}>
                 <Text style={styles.label}>Contact Number</Text>
-                <Text style={styles.value}>{user?.contact_number || 'Not set'}</Text>
+                <Text style={styles.value}>{profileData.contact_number || 'Not provided'}</Text>
               </View>
-
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>Email</Text>
-                <Text style={styles.value}>{user?.email || 'Not set'}</Text>
+              <View style={styles.divider} />
+              <View style={styles.infoItem}>
+                <Text style={styles.label}>Email Address</Text>
+                <Text style={styles.value}>{user?.email || 'Not provided'}</Text>
               </View>
-            </>
+            </View>
           )}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Address</Text>
           
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Purok</Text>
-            <Text style={styles.value}>
-              {residentDetails?.purok_name || 'N/A'}
-            </Text>
-          </View>
+          <View style={styles.card}>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Street Address</Text>
+              <Text style={styles.value}>{residentDetails?.household?.address || 'Not provided'}</Text>
+            </View>
+            <View style={styles.divider} />
+            
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Purok</Text>
+              <Text style={styles.value}>{residentDetails?.purok_name || 'N/A'}</Text>
+            </View>
+            <View style={styles.divider} />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Household Number</Text>
-            <Text style={styles.value}>
-              {residentDetails?.household_number || 'N/A'}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Address</Text>
-            <Text style={styles.value} numberOfLines={2}>
-              {residentDetails?.household?.address || 'N/A'}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Barangay ID</Text>
-            <Text style={styles.value}>
-              {residentDetails?.barangay_id || 'N/A'}
-            </Text>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Household Number</Text>
+              <Text style={styles.value}>{residentDetails?.household_number || 'N/A'}</Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Household Information</Text>
-          
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Relationship to Head</Text>
-            <Text style={styles.value}>
-              {residentDetails?.relationship_to_head ? residentDetails.relationship_to_head.charAt(0).toUpperCase() + residentDetails.relationship_to_head.slice(1) : 'N/A'}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Occupation</Text>
-            <Text style={styles.value}>
-              {residentDetails?.occupation || 'N/A'}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Voter Status</Text>
-            <Text style={styles.value}>
-              {residentDetails?.is_voter ? 'Registered Voter' : 'Not Registered'}
-            </Text>
-          </View>
-
-          {residentDetails?.is_pwd && (
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>PWD</Text>
-              <Text style={styles.value}>Yes</Text>
+          <Text style={styles.sectionTitle}>Household Details</Text>
+          <View style={styles.card}>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Relationship to Head</Text>
+              <Text style={styles.value}>
+                {residentDetails?.relationship_to_head ? residentDetails.relationship_to_head.charAt(0).toUpperCase() + residentDetails.relationship_to_head.slice(1) : 'N/A'}
+              </Text>
             </View>
-          )}
+            <View style={styles.divider} />
 
-          {residentDetails?.is_senior_citizen && (
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Senior Citizen</Text>
-              <Text style={styles.value}>Yes</Text>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Occupation</Text>
+              <Text style={styles.value}>{residentDetails?.occupation || 'N/A'}</Text>
             </View>
-          )}
+            <View style={styles.divider} />
+
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Voter Status</Text>
+              <Text style={styles.value}>
+                {residentDetails?.is_voter ? 'Registered Voter' : 'Not Registered'}
+              </Text>
+            </View>
+
+            {(residentDetails?.is_pwd || residentDetails?.is_senior_citizen) && (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.infoItem}>
+                  <Text style={styles.label}>Special Status</Text>
+                  <View style={styles.badgeContainer}>
+                    {residentDetails?.is_pwd && (
+                      <View style={[styles.badge, { backgroundColor: '#3B82F6' }]}>
+                        <Text style={styles.badgeText}>PWD</Text>
+                      </View>
+                    )}
+                    {residentDetails?.is_senior_citizen && (
+                      <View style={[styles.badge, { backgroundColor: '#10B981' }]}>
+                        <Text style={styles.badgeText}>Senior Citizen</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </>
+            )}
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Emergency Contact</Text>
-          
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Contact Person</Text>
-            <Text style={styles.value}>
-              {residentDetails?.emergency_contact_name || 'Not set'}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Contact Number</Text>
-            <Text style={styles.value}>
-              {residentDetails?.emergency_contact_number || 'Not set'}
-            </Text>
+          <View style={styles.card}>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Contact Person</Text>
+              <Text style={styles.value}>{residentDetails?.emergency_contact_name || 'Not provided'}</Text>
+            </View>
+            <View style={styles.divider} />
+            
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Contact Number</Text>
+              <Text style={styles.value}>{residentDetails?.emergency_contact_number || 'Not provided'}</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -254,90 +268,199 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#F9FAFB',
   },
-  header: {
+  headerContainer: {
+    backgroundColor: 'white',
+    paddingTop: 60,
+    paddingBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 16,
     paddingHorizontal: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   backButton: {
-    fontSize: 16,
-    color: '#3b82f6',
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIconContainer: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIconArrow: {
+    width: 12,
+    height: 12,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#6B7280',
+    transform: [{ rotate: '45deg' }],
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: '#111827',
+    letterSpacing: 0.3,
   },
-  editButton: {
-    fontSize: 16,
-    color: '#3b82f6',
+  actionButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    backgroundColor: '#EF4444',
+  },
+  cancelButtonText: {
+    color: 'white',
   },
   content: {
     flex: 1,
   },
-  avatarContainer: {
+  profileHeader: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: 40,
     backgroundColor: 'white',
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#3b82f6',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 16,
   },
+  avatarWrapper: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 5,
+    right: 5,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#10B981',
+    borderWidth: 3,
+    borderColor: 'white',
+  },
   avatarText: {
-    fontSize: 36,
+    fontSize: 40,
     fontWeight: 'bold',
     color: 'white',
   },
   nameText: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 4,
+    color: '#111827',
+    marginBottom: 6,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+    marginRight: 6,
   },
   roleText: {
     fontSize: 14,
-    color: '#64748b',
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  idBadge: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 4,
+  },
+  idBadgeText: {
+    fontSize: 13,
+    color: '#4F46E5',
+    fontWeight: '600',
   },
   section: {
-    backgroundColor: 'white',
-    marginTop: 16,
-    padding: 20,
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 16,
+    color: '#111827',
+    marginBottom: 12,
+    letterSpacing: 0.2,
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  infoItem: {
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
   },
   label: {
-    fontSize: 14,
-    color: '#64748b',
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 6,
+    fontWeight: '500',
   },
   value: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#1e293b',
+    color: '#111827',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 4,
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginRight: 8,
+    marginTop: 4,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
   inputGroup: {
     marginBottom: 16,
@@ -345,52 +468,35 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1e293b',
+    color: '#111827',
     marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f8fafc',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 15,
+    backgroundColor: '#F9FAFB',
+    color: '#111827',
   },
   saveButton: {
-    backgroundColor: '#3b82f6',
-    borderRadius: 8,
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
-  },
-  memberCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#f8fafc',
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  memberName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-  memberRelation: {
-    fontSize: 12,
-    color: '#64748b',
-  },
-  noDataText: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    paddingVertical: 16,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
 });
 

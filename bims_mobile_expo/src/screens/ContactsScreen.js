@@ -113,12 +113,16 @@ const ContactsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Barangay Contacts</Text>
-        <View style={{ width: 50 }} />
+      <View style={styles.headerContainer}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <View style={styles.backIconContainer}>
+              <View style={styles.backIconArrow} />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Contacts</Text>
+          <View style={{ width: 40 }} />
+        </View>
       </View>
 
       <ScrollView style={styles.content}>
@@ -190,7 +194,10 @@ const ContactsScreen = ({ navigation }) => {
                 <Text style={styles.serviceContact}>{service.contact}</Text>
               </View>
               <View style={styles.callIconContainer}>
-                <View style={styles.callIcon} />
+                <View style={styles.phoneIconWrapper}>
+                  <View style={styles.phoneIconBody} />
+                  <View style={styles.phoneIconHandle} />
+                </View>
               </View>
             </TouchableOpacity>
           ))}
@@ -210,27 +217,49 @@ const ContactsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#F9FAFB',
   },
-  header: {
+  headerContainer: {
+    backgroundColor: 'white',
+    paddingTop: 60,
+    paddingBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 16,
     paddingHorizontal: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   backButton: {
-    fontSize: 16,
-    color: '#3b82f6',
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIconContainer: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIconArrow: {
+    width: 12,
+    height: 12,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#6B7280',
+    transform: [{ rotate: '45deg' }],
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: '#111827',
+    letterSpacing: 0.3,
   },
   content: {
     flex: 1,
@@ -403,11 +432,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  callIcon: {
+  phoneIconWrapper: {
     width: 20,
     height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  phoneIconBody: {
+    width: 14,
+    height: 14,
+    borderWidth: 2,
+    borderColor: '#3b82f6',
+    borderRadius: 3,
+    transform: [{ rotate: '-25deg' }],
+  },
+  phoneIconHandle: {
+    width: 4,
+    height: 6,
     backgroundColor: '#3b82f6',
-    borderRadius: 10,
+    borderRadius: 2,
+    position: 'absolute',
+    bottom: 1,
+    right: 1,
   },
   noteCard: {
     backgroundColor: '#eff6ff',
