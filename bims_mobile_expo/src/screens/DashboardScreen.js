@@ -6,30 +6,76 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../contexts/AuthContext';
 import { settingsAPI } from '../services/settingsAPI';
+import { documentsAPI, announcementsAPI, projectsAPI } from '../services/api';
 
 const DashboardScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [sidebarColor, setSidebarColor] = useState('#3b82f6');
   const [barangayName, setBarangayName] = useState('Barangay');
+  const [dashboardData, setDashboardData] = useState({
+    activeRequests: 0,
+    announcements: 0,
+    upcomingEvents: 0,
+  });
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const savedColor = await AsyncStorage.getItem('sidebarColor');
-        const savedName = await AsyncStorage.getItem('barangayName');
-        
-        if (savedColor) setSidebarColor(savedColor);
-        if (savedName) setBarangayName(savedName);
-      } catch (error) {
-        console.error('Error loading settings:', error);
-      }
-    };
     loadSettings();
+    loadDashboardData();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const savedColor = await AsyncStorage.getItem('sidebarColor');
+      const savedName = await AsyncStorage.getItem('barangayName');
+      
+      if (savedColor) setSidebarColor(savedColor);
+      if (savedName) setBarangayName(savedName);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadDashboardData = async () => {
+    try {
+      const [documentsRes, announcementsRes, eventsRes] = await Promise.allSettled([
+        documentsAPI.getMyRequests(),
+        announcementsAPI.getAnnouncements(),
+        projectsAPI.getUpcomingEvents(),
+      ]);
+
+      const activeRequests = documentsRes.status === 'fulfilled' 
+        ? documentsRes.value.filter(doc => doc.status === 'pending' || doc.status === 'approved').length 
+        : 0;
+
+      const announcements = announcementsRes.status === 'fulfilled'
+        ? announcementsRes.value.filter(ann => ann.status === 'published').length
+        : 0;
+
+      const upcomingEvents = eventsRes.status === 'fulfilled'
+        ? eventsRes.value.length
+        : 0;
+
+      setDashboardData({
+        activeRequests,
+        announcements,
+        upcomingEvents,
+      });
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadDashboardData();
+    setRefreshing(false);
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -47,9 +93,9 @@ const DashboardScreen = ({ navigation }) => {
   };
 
   const summaryCards = [
-    { title: 'Active Requests', count: '3', color: '#3b82f6' },
-    { title: 'Announcements', count: '12', color: '#10b981' },
-    { title: 'Upcoming Events', count: '2', color: '#f59e0b' },
+    { title: 'Active Requests', count: dashboardData.activeRequests.toString(), color: '#3b82f6' },
+    { title: 'Announcements', count: dashboardData.announcements.toString(), color: '#10b981' },
+    { title: 'Upcoming Events', count: dashboardData.upcomingEvents.toString(), color: '#f59e0b' },
   ];
 
   return (
@@ -64,10 +110,24 @@ const DashboardScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[sidebarColor]}
+            tintColor={sidebarColor}
+          />
+        }
+      >
         <View style={styles.statusCard}>
           <Text style={styles.statusTitle}>Account Status</Text>
-          <View style={styles.statusBadge}>
+          <View style={[
+            styles.statusBadge,
+            { backgroundColor: user?.is_approved ? '#10b981' : '#f59e0b' }
+          ]}>
             <Text style={styles.statusText}>
               {user?.is_approved ? 'Approved' : 'Pending Approval'}
             </Text>
@@ -209,7 +269,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   statusBadge: {
-    backgroundColor: '#10b981',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,

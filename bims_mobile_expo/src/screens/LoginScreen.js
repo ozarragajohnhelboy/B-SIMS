@@ -117,8 +117,13 @@ const LoginScreen = ({ navigation }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.logoContainer}>
           {customLogo ? (
             <Image source={{ uri: customLogo }} style={styles.logoImageLarge} />
@@ -193,19 +198,19 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: 16,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 24,
   },
   logo: {
-    width: 120,
-    height: 120,
-    borderRadius: 30,
+    width: 80,
+    height: 80,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -213,33 +218,33 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   logoImageLarge: {
-    width: 120,
-    height: 120,
-    borderRadius: 30,
-    marginBottom: 16,
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    marginBottom: 12,
     resizeMode: 'contain',
   },
   logoText: {
     color: 'white',
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   barangayNameText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1e293b',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#64748b',
     textAlign: 'center',
   },
   formContainer: {
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 24,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -250,70 +255,70 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#1e293b',
-    marginBottom: 8,
+    marginBottom: 4,
     textAlign: 'center',
   },
   description: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#64748b',
-    marginBottom: 32,
+    marginBottom: 20,
     textAlign: 'center',
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 14,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   input: {
     borderWidth: 1,
     borderColor: '#d1d5db',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
     backgroundColor: '#f9fafb',
   },
   button: {
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 14,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
   buttonDisabled: {
     backgroundColor: '#9ca3af',
   },
   buttonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
   forgotPassword: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 12,
   },
   forgotPasswordText: {
     color: '#3b82f6',
-    fontSize: 16,
+    fontSize: 14,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 20,
   },
   footerText: {
     color: '#64748b',
-    fontSize: 16,
+    fontSize: 14,
   },
   registerText: {
     color: '#3b82f6',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,
   },

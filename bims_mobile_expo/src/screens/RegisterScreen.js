@@ -107,8 +107,8 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+    if (formData.password.length < 8) {
+      Alert.alert('Error', 'Password must be at least 8 characters');
       return;
     }
 
@@ -118,6 +118,7 @@ const RegisterScreen = ({ navigation }) => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        password_confirm: formData.confirmPassword,
         first_name: formData.first_name,
         last_name: formData.last_name,
       });
@@ -142,8 +143,13 @@ const RegisterScreen = ({ navigation }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.logoContainer}>
           <View style={[styles.logo, { backgroundColor: sidebarColor }]}>
             {customLogo ? (
@@ -160,7 +166,7 @@ const RegisterScreen = ({ navigation }) => {
           <Text style={styles.description}>Join the barangay community</Text>
 
           <View style={styles.row}>
-            <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
+            <View style={[styles.inputContainer, { flex: 1, marginRight: 6 }]}>
               <Text style={styles.label}>First Name</Text>
               <TextInput
                 style={styles.input}
@@ -171,7 +177,7 @@ const RegisterScreen = ({ navigation }) => {
               />
             </View>
 
-            <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
+            <View style={[styles.inputContainer, { flex: 1, marginLeft: 6 }]}>
               <Text style={styles.label}>Last Name</Text>
               <TextInput
                 style={styles.input}
@@ -262,39 +268,39 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: 16,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   logoImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 15,
+    width: 55,
+    height: 55,
+    borderRadius: 12,
   },
   logoText: {
     color: 'white',
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#64748b',
     textAlign: 'center',
   },
   formContainer: {
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 24,
+    padding: 18,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -305,65 +311,65 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   title: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1e293b',
-    marginBottom: 8,
+    marginBottom: 4,
     textAlign: 'center',
   },
   description: {
-    fontSize: 16,
+    fontSize: 13,
     color: '#64748b',
-    marginBottom: 32,
+    marginBottom: 16,
     textAlign: 'center',
   },
   row: {
     flexDirection: 'row',
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 12,
   },
   label: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 8,
+    marginBottom: 5,
   },
   input: {
     borderWidth: 1,
     borderColor: '#d1d5db',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 14,
     backgroundColor: '#f9fafb',
   },
   button: {
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 13,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
   buttonDisabled: {
     backgroundColor: '#9ca3af',
   },
   buttonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 20,
   },
   footerText: {
     color: '#64748b',
-    fontSize: 16,
+    fontSize: 13,
   },
   loginText: {
     color: '#3b82f6',
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '600',
     marginLeft: 8,
   },

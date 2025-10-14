@@ -46,7 +46,6 @@ export const authAPI = {
     const response = await api.post('/auth/register/', {
       ...userData,
       role: 'resident',
-      is_approved: false,
     });
     return response.data;
   },
@@ -82,21 +81,36 @@ export const residentsAPI = {
     const response = await api.patch(`/residents/${id}/`, data);
     return response.data;
   },
+
+  getStats: async () => {
+    const response = await api.get('/residents/stats/');
+    return response.data;
+  },
 };
 
 export const documentsAPI = {
   getDocuments: async () => {
-    const response = await api.get('/documents/');
+    const response = await api.get('/residents/document-requests/');
     return response.data;
   },
 
   createDocumentRequest: async (data) => {
-    const response = await api.post('/documents/', data);
+    const response = await api.post('/residents/document-requests/', data);
     return response.data;
   },
 
   getDocumentTypes: async () => {
-    const response = await api.get('/documents/types/');
+    const response = await api.get('/residents/document-types/');
+    return response.data;
+  },
+
+  getMyRequests: async () => {
+    const response = await api.get('/residents/document-requests/');
+    return response.data;
+  },
+
+  getStats: async () => {
+    const response = await api.get('/residents/document-stats/');
     return response.data;
   },
 };
@@ -138,6 +152,23 @@ export const financialAPI = {
 
   getExpenseRecords: async () => {
     const response = await api.get('/financial/expense/');
+    return response.data;
+  },
+};
+
+export const projectsAPI = {
+  getProjects: async () => {
+    const response = await api.get('/projects/');
+    return response.data;
+  },
+
+  getEvents: async () => {
+    const response = await api.get('/projects/events/');
+    return response.data;
+  },
+
+  getUpcomingEvents: async () => {
+    const response = await api.get('/projects/events/?upcoming=true');
     return response.data;
   },
 };

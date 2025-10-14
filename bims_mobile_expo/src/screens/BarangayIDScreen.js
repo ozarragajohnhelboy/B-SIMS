@@ -6,32 +6,54 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../contexts/AuthContext';
+import { residentsAPI } from '../services/api';
 
 const BarangayIDScreen = ({ navigation }) => {
   const { user } = useAuth();
   const [sidebarColor, setSidebarColor] = useState('#3b82f6');
   const [barangayName, setBarangayName] = useState('Barangay');
   const [customLogo, setCustomLogo] = useState(null);
+  const [residentDetails, setResidentDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const savedColor = await AsyncStorage.getItem('sidebarColor');
-        const savedName = await AsyncStorage.getItem('barangayName');
-        const savedLogo = await AsyncStorage.getItem('customLogo');
-        
-        if (savedColor) setSidebarColor(savedColor);
-        if (savedName) setBarangayName(savedName);
-        if (savedLogo) setCustomLogo(savedLogo);
-      } catch (error) {
-        console.error('Error loading settings:', error);
-      }
-    };
     loadSettings();
+    loadResidentData();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const savedColor = await AsyncStorage.getItem('sidebarColor');
+      const savedName = await AsyncStorage.getItem('barangayName');
+      const savedLogo = await AsyncStorage.getItem('customLogo');
+      
+      if (savedColor) setSidebarColor(savedColor);
+      if (savedName) setBarangayName(savedName);
+      if (savedLogo) setCustomLogo(savedLogo);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadResidentData = async () => {
+    try {
+      setLoading(true);
+      if (user?.resident_id) {
+        const data = await residentsAPI.getResident(user.resident_id);
+        setResidentDetails(data);
+      }
+    } catch (error) {
+      console.error('Error loading resident data:', error);
+      Alert.alert('Error', 'Failed to load ID information');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -44,87 +66,111 @@ const BarangayIDScreen = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.idCard}>
-          <View style={[styles.idHeader, { backgroundColor: sidebarColor }]}>
-            <View style={styles.idHeaderContent}>
-              {customLogo ? (
-                <Image source={{ uri: customLogo }} style={styles.idLogo} />
-              ) : (
-                <View style={styles.idLogoPlaceholder}>
-                  <Text style={styles.idLogoText}>{barangayName[0]}</Text>
-                </View>
-              )}
-              <Text style={styles.idBarangayName}>{barangayName}</Text>
-              <Text style={styles.idSubtitle}>BARANGAY IDENTIFICATION CARD</Text>
-            </View>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={sidebarColor} />
+            <Text style={styles.loadingText}>Loading ID...</Text>
           </View>
+        ) : (
+          <View style={styles.idCard}>
+            <View style={[styles.idHeader, { backgroundColor: sidebarColor }]}>
+              <View style={styles.idHeaderContent}>
+                {customLogo ? (
+                  <Image source={{ uri: customLogo }} style={styles.idLogo} />
+                ) : (
+                  <View style={styles.idLogoPlaceholder}>
+                    <Text style={styles.idLogoText}>{barangayName[0]}</Text>
+                  </View>
+                )}
+                <Text style={styles.idBarangayName}>{barangayName}</Text>
+                <Text style={styles.idSubtitle}>BARANGAY IDENTIFICATION CARD</Text>
+              </View>
+            </View>
 
-          <View style={styles.idBody}>
-            <View style={styles.photoContainer}>
-              <View style={styles.photoPlaceholder}>
-                <Text style={styles.photoText}>
-                  {user?.first_name?.[0]}{user?.last_name?.[0]}
+            <View style={styles.idBody}>
+              <View style={styles.photoContainer}>
+                <View style={styles.photoPlaceholder}>
+                  <Text style={styles.photoText}>
+                    {user?.first_name?.[0]}{user?.last_name?.[0]}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.infoContainer}>
+                <Text style={styles.idName}>
+                  {residentDetails?.full_name || `${user?.first_name} ${user?.last_name}`}
                 </Text>
-              </View>
-            </View>
+                <Text style={styles.idResidentId}>ID: {residentDetails?.barangay_id || 'N/A'}</Text>
 
-            <View style={styles.infoContainer}>
-              <Text style={styles.idName}>
-                {user?.first_name} {user?.last_name}
-              </Text>
-              <Text style={styles.idResidentId}>ID: RES-{user?.id}</Text>
+                <View style={styles.idDetailRow}>
+                  <Text style={styles.idLabel}>Date of Birth:</Text>
+                  <Text style={styles.idValue}>{residentDetails?.birth_date || 'N/A'}</Text>
+                </View>
 
-              <View style={styles.idDetailRow}>
-                <Text style={styles.idLabel}>Date of Birth:</Text>
-                <Text style={styles.idValue}>January 1, 1990</Text>
-              </View>
+                <View style={styles.idDetailRow}>
+                  <Text style={styles.idLabel}>Age:</Text>
+                  <Text style={styles.idValue}>{residentDetails?.age || 'N/A'} years old</Text>
+                </View>
 
-              <View style={styles.idDetailRow}>
-                <Text style={styles.idLabel}>Address:</Text>
-                <Text style={styles.idValue}>Purok 1, {barangayName}</Text>
-              </View>
+                <View style={styles.idDetailRow}>
+                  <Text style={styles.idLabel}>Address:</Text>
+                  <Text style={styles.idValue} numberOfLines={2}>
+                    {residentDetails?.purok_name ? `${residentDetails.purok_name}, ${barangayName}` : barangayName}
+                  </Text>
+                </View>
 
-              <View style={styles.idDetailRow}>
-                <Text style={styles.idLabel}>Contact:</Text>
-                <Text style={styles.idValue}>{user?.contact_number || 'Not set'}</Text>
-              </View>
+                <View style={styles.idDetailRow}>
+                  <Text style={styles.idLabel}>Household:</Text>
+                  <Text style={styles.idValue}>{residentDetails?.household_number || 'N/A'}</Text>
+                </View>
 
-              <View style={styles.idDetailRow}>
-                <Text style={styles.idLabel}>Emergency Contact:</Text>
-                <Text style={styles.idValue}>Not set</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.qrSection}>
-            <View style={styles.qrContainer}>
-              <View style={styles.qrPlaceholder}>
-                <View style={styles.qrGrid}>
-                  <View style={styles.qrBlock} />
-                  <View style={styles.qrBlock} />
-                  <View style={styles.qrBlock} />
-                  <View style={styles.qrBlock} />
-                  <View style={styles.qrBlock} />
-                  <View style={styles.qrBlock} />
-                  <View style={styles.qrBlock} />
-                  <View style={styles.qrBlock} />
-                  <View style={styles.qrBlock} />
+                <View style={styles.idDetailRow}>
+                  <Text style={styles.idLabel}>Emergency Contact:</Text>
+                  <Text style={styles.idValue}>
+                    {residentDetails?.emergency_contact_number || 'Not set'}
+                  </Text>
                 </View>
               </View>
-              <Text style={styles.qrText}>Scan to verify identity</Text>
-              <Text style={styles.qrId}>QR-{user?.id}-2025</Text>
+            </View>
+
+            <View style={styles.qrSection}>
+              <View style={styles.qrContainer}>
+                {residentDetails?.qr_code ? (
+                  <Image 
+                    source={{ uri: residentDetails.qr_code }} 
+                    style={styles.qrImage}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <View style={styles.qrPlaceholder}>
+                    <View style={styles.qrGrid}>
+                      <View style={styles.qrBlock} />
+                      <View style={styles.qrBlock} />
+                      <View style={styles.qrBlock} />
+                      <View style={styles.qrBlock} />
+                      <View style={styles.qrBlock} />
+                      <View style={styles.qrBlock} />
+                      <View style={styles.qrBlock} />
+                      <View style={styles.qrBlock} />
+                      <View style={styles.qrBlock} />
+                    </View>
+                  </View>
+                )}
+                <Text style={styles.qrText}>Scan to verify identity</Text>
+                <Text style={styles.qrId}>{residentDetails?.barangay_id || 'N/A'}</Text>
+              </View>
+            </View>
+
+            <View style={styles.idFooter}>
+              <Text style={styles.footerText}>
+                This card is the property of {barangayName}
+              </Text>
+              <Text style={styles.footerText}>
+                If found, please return to Barangay Hall
+              </Text>
             </View>
           </View>
-
-          <View style={styles.idFooter}>
-            <Text style={styles.footerText}>
-              This card is the property of {barangayName}
-            </Text>
-            <Text style={styles.footerText}>
-              If found, please return to Barangay Hall
-            </Text>
-          </View>
-        </View>
+        )}
 
         <View style={styles.noteCard}>
           <Text style={styles.noteTitle}>Important Notes:</Text>
@@ -170,6 +216,17 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 100,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#64748b',
   },
   idCard: {
     backgroundColor: 'white',
@@ -290,6 +347,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#e2e8f0',
+    marginBottom: 12,
+  },
+  qrImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 12,
     marginBottom: 12,
   },
   qrGrid: {

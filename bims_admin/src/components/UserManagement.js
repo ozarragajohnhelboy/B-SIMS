@@ -9,6 +9,7 @@ const UserManagement = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
@@ -139,6 +140,26 @@ const UserManagement = () => {
     setDeleteConfirm({ show: false, id: null, username: '' });
   };
 
+  const handleApprove = async (id) => {
+    try {
+      await usersAPI.approveUser(id);
+      showAlert('success', 'User approved successfully. Email notification sent.');
+      await fetchUsers();
+    } catch (error) {
+      showAlert('error', 'Failed to approve user');
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      await usersAPI.rejectUser(id);
+      showAlert('success', 'User rejected successfully');
+      await fetchUsers();
+    } catch (error) {
+      showAlert('error', 'Failed to reject user');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       username: '',
@@ -151,12 +172,21 @@ const UserManagement = () => {
     });
   };
 
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesFilter = 
+      filterStatus === 'all' ||
+      (filterStatus === 'pending' && !user.is_approved && user.role === 'resident') ||
+      (filterStatus === 'approved' && user.is_approved) ||
+      (filterStatus === 'staff' && user.role !== 'resident');
+    
+    return matchesSearch && matchesFilter;
+  });
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -193,11 +223,20 @@ const UserManagement = () => {
     return <div className="text-center py-8">Loading...</div>;
   }
 
+  const pendingCount = users.filter(u => u.role === 'resident' && !u.is_approved).length;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+            {pendingCount > 0 && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">
+                {pendingCount} Pending Approval{pendingCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
           <p className="text-gray-600 mt-1">Manage admin accounts and user permissions</p>
         </div>
         <div className="flex space-x-3">
@@ -228,6 +267,18 @@ const UserManagement = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+            <div className="w-48">
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Users</option>
+                <option value="pending">Pending Approval</option>
+                <option value="approved">Approved Users</option>
+                <option value="staff">Staff Only</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -238,8 +289,8 @@ const UserManagement = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Joined</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -270,31 +321,66 @@ const UserManagement = () => {
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       user.role === 'admin' 
                         ? 'bg-purple-100 text-purple-800'
+                        : user.role === 'secretary'
+                        ? 'bg-blue-100 text-blue-800'
+                        : user.role === 'treasurer'
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
                       {user.role}
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {user.role === 'resident' ? (
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        user.is_approved
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {user.is_approved ? 'Approved' : 'Pending'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                        Staff
+                      </span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.date_joined).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete
-                      </button>
+                      {user.role === 'resident' && !user.is_approved ? (
+                        <>
+                          <button
+                            onClick={() => handleApprove(user.id)}
+                            className="text-green-600 hover:text-green-900 font-semibold"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReject(user.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleEdit(user)}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(user.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

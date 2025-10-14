@@ -4,10 +4,21 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False, min_length=8)
+    
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone_number', 'address', 'is_active', 'date_joined', 'last_login']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone_number', 'address', 'is_active', 'is_approved', 'password', 'date_joined', 'last_login']
         read_only_fields = ['id', 'date_joined', 'last_login']
+    
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if password:
+            instance.set_password(password)
+        instance.save()
+        return instance
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -50,8 +61,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('password_confirm')
         password = validated_data.pop('password')
+        
         user = User.objects.create_user(**validated_data)
         user.set_password(password)
+        user.is_approved = False
+        user.is_active = False
         user.save()
         return user
 
@@ -70,6 +84,8 @@ class LoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError('Invalid credentials')
             if not user.is_active:
                 raise serializers.ValidationError('User account is disabled')
+            if not user.is_approved and user.role == 'resident':
+                raise serializers.ValidationError('Your account is pending approval. Please wait for admin approval.')
             attrs['user'] = user
         else:
             raise serializers.ValidationError('Must include username and password')

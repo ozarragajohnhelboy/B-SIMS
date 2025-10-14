@@ -50,7 +50,20 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: 'Invalid credentials' };
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+      let errorMessage = 'Login failed';
+      
+      if (error.response?.data) {
+        const data = error.response.data;
+        if (typeof data === 'object') {
+          const firstError = Object.values(data)[0];
+          errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+        } else if (typeof data === 'string') {
+          errorMessage = data;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
@@ -62,13 +75,29 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       const response = await authAPI.register(userData);
       
-      if (response.user) {
+      if (response.id || response.user || response.username) {
         return { success: true };
       } else {
         return { success: false, error: 'Registration failed' };
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
+      let errorMessage = 'Registration failed';
+      
+      if (error.response?.data) {
+        const data = error.response.data;
+        console.log('Registration error data:', JSON.stringify(data, null, 2));
+        
+        if (typeof data === 'object') {
+          const firstError = Object.values(data)[0];
+          errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+        } else if (typeof data === 'string') {
+          errorMessage = data;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      console.log('Registration error:', errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);

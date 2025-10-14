@@ -30,12 +30,13 @@ const ProfileScreen = ({ navigation }) => {
         const data = await residentsAPI.getResident(user.resident_id);
         setResidentDetails(data);
         setProfileData({
-          contact_number: user.contact_number || '',
+          contact_number: data.emergency_contact_number || user.contact_number || '',
           email: user.email || '',
         });
       }
     } catch (error) {
       console.error('Error loading resident data:', error);
+      Alert.alert('Error', 'Failed to load profile data');
     }
   };
 
@@ -163,33 +164,87 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.infoRow}>
             <Text style={styles.label}>Purok</Text>
             <Text style={styles.value}>
-              {residentDetails?.household?.purok || 'N/A'}
+              {residentDetails?.purok_name || 'N/A'}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Household Number</Text>
+            <Text style={styles.value}>
+              {residentDetails?.household_number || 'N/A'}
             </Text>
           </View>
 
           <View style={styles.infoRow}>
             <Text style={styles.label}>Address</Text>
-            <Text style={styles.value}>
+            <Text style={styles.value} numberOfLines={2}>
               {residentDetails?.household?.address || 'N/A'}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Barangay ID</Text>
+            <Text style={styles.value}>
+              {residentDetails?.barangay_id || 'N/A'}
             </Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Household Members</Text>
+          <Text style={styles.sectionTitle}>Household Information</Text>
           
-          {residentDetails?.household?.members?.length > 0 ? (
-            residentDetails.household.members.map((member, index) => (
-              <View key={index} style={styles.memberCard}>
-                <Text style={styles.memberName}>
-                  {member.first_name} {member.last_name}
-                </Text>
-                <Text style={styles.memberRelation}>{member.relationship}</Text>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noDataText}>No household members data available</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Relationship to Head</Text>
+            <Text style={styles.value}>
+              {residentDetails?.relationship_to_head ? residentDetails.relationship_to_head.charAt(0).toUpperCase() + residentDetails.relationship_to_head.slice(1) : 'N/A'}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Occupation</Text>
+            <Text style={styles.value}>
+              {residentDetails?.occupation || 'N/A'}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Voter Status</Text>
+            <Text style={styles.value}>
+              {residentDetails?.is_voter ? 'Registered Voter' : 'Not Registered'}
+            </Text>
+          </View>
+
+          {residentDetails?.is_pwd && (
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>PWD</Text>
+              <Text style={styles.value}>Yes</Text>
+            </View>
           )}
+
+          {residentDetails?.is_senior_citizen && (
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Senior Citizen</Text>
+              <Text style={styles.value}>Yes</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Emergency Contact</Text>
+          
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Contact Person</Text>
+            <Text style={styles.value}>
+              {residentDetails?.emergency_contact_name || 'Not set'}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Contact Number</Text>
+            <Text style={styles.value}>
+              {residentDetails?.emergency_contact_number || 'Not set'}
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </View>

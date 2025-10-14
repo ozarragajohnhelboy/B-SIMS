@@ -237,6 +237,8 @@ export const usersAPI = {
   createUser: (data) => api.post('/auth/users/', data),
   updateUser: (id, data) => api.put(`/auth/users/${id}/`, data),
   deleteUser: (id) => api.delete(`/auth/users/${id}/`),
+  approveUser: (id) => api.patch(`/auth/users/${id}/`, { is_approved: true, is_active: true }),
+  rejectUser: (id) => api.patch(`/auth/users/${id}/`, { is_approved: false, is_active: false }),
 };
 
 export const coreAPI = {
