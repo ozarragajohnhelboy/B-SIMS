@@ -8,15 +8,13 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../contexts/AuthContext';
-import { settingsAPI } from '../services/settingsAPI';
+import { useSettings } from '../contexts/SettingsContext';
 import { documentsAPI, announcementsAPI, projectsAPI } from '../services/api';
 
 const DashboardScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
-  const [sidebarColor, setSidebarColor] = useState('#3b82f6');
-  const [barangayName, setBarangayName] = useState('Barangay');
+  const { settings } = useSettings();
   const [dashboardData, setDashboardData] = useState({
     activeRequests: 0,
     announcements: 0,
@@ -25,21 +23,8 @@ const DashboardScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadSettings();
     loadDashboardData();
   }, []);
-
-  const loadSettings = async () => {
-    try {
-      const savedColor = await AsyncStorage.getItem('sidebarColor');
-      const savedName = await AsyncStorage.getItem('barangayName');
-      
-      if (savedColor) setSidebarColor(savedColor);
-      if (savedName) setBarangayName(savedName);
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  };
 
   const loadDashboardData = async () => {
     try {
@@ -107,7 +92,7 @@ const DashboardScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { backgroundColor: sidebarColor }]}>
+      <View style={[styles.header, { backgroundColor: settings.sidebarColor }]}>
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.greeting}>{getGreeting()}</Text>
@@ -130,8 +115,8 @@ const DashboardScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[sidebarColor]}
-            tintColor={sidebarColor}
+            colors={[settings.sidebarColor]}
+            tintColor={settings.sidebarColor}
           />
         }
       >

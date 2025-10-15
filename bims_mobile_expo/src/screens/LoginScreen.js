@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { settingsAPI } from '../services/settingsAPI';
+import { useSettings } from '../contexts/SettingsContext';
 
 const LoginScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -21,66 +20,8 @@ const LoginScreen = ({ navigation }) => {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [customLogo, setCustomLogo] = useState(null);
-  const [sidebarColor, setSidebarColor] = useState('#3b82f6');
-  const [barangayName, setBarangayName] = useState('B-SIMS');
   const { login } = useAuth();
-
-  useEffect(() => {
-    const loadCustomSettings = async () => {
-      try {
-        const savedLogo = await AsyncStorage.getItem('customLogo');
-        const savedColor = await AsyncStorage.getItem('sidebarColor');
-        const savedBarangayName = await AsyncStorage.getItem('barangayName');
-        
-        if (savedLogo) {
-          setCustomLogo(savedLogo);
-        } else {
-          try {
-            const settings = await settingsAPI.getSettings();
-            if (settings.customLogo) {
-              setCustomLogo(settings.customLogo);
-              await AsyncStorage.setItem('customLogo', settings.customLogo);
-            }
-          } catch (error) {
-            console.error('Error fetching settings:', error);
-          }
-        }
-        
-        if (savedColor) {
-          setSidebarColor(savedColor);
-        } else {
-          try {
-            const settings = await settingsAPI.getSettings();
-            if (settings.sidebarColor) {
-              setSidebarColor(settings.sidebarColor);
-              await AsyncStorage.setItem('sidebarColor', settings.sidebarColor);
-            }
-          } catch (error) {
-            console.error('Error fetching settings:', error);
-          }
-        }
-        
-        if (savedBarangayName) {
-          setBarangayName(savedBarangayName);
-        } else {
-          try {
-            const settings = await settingsAPI.getSettings();
-            const name = settings.barangayName || settings.barangay_name;
-            if (name) {
-              setBarangayName(name);
-              await AsyncStorage.setItem('barangayName', name);
-            }
-          } catch (error) {
-            console.error('Error fetching settings:', error);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading custom settings:', error);
-      }
-    };
-    loadCustomSettings();
-  }, []);
+  const { settings } = useSettings();
 
   const handleChange = (field, value) => {
     setFormData(prev => ({
@@ -125,14 +66,14 @@ const LoginScreen = ({ navigation }) => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoContainer}>
-          {customLogo ? (
-            <Image source={{ uri: customLogo }} style={styles.logoImageLarge} />
+          {settings.customLogo ? (
+            <Image source={{ uri: settings.customLogo }} style={styles.logoImageLarge} />
           ) : (
-            <View style={[styles.logo, { backgroundColor: sidebarColor }]}>
-              <Text style={styles.logoText}>{barangayName}</Text>
+            <View style={[styles.logo, { backgroundColor: settings.sidebarColor }]}>
+              <Text style={styles.logoText}>{settings.appName}</Text>
             </View>
           )}
-          <Text style={styles.barangayNameText}>{barangayName}</Text>
+          <Text style={styles.barangayNameText}>{settings.barangayName}</Text>
           <Text style={styles.subtitle}>Barangay Information Management System</Text>
         </View>
 
@@ -165,7 +106,7 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: sidebarColor }, loading && styles.buttonDisabled]}
+            style={[styles.button, { backgroundColor: settings.sidebarColor }, loading && styles.buttonDisabled]}
             onPress={handleSubmit}
             disabled={loading}
           >

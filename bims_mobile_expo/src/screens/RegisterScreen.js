@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { settingsAPI } from '../services/settingsAPI';
+import { useSettings } from '../contexts/SettingsContext';
 
 const RegisterScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -25,49 +24,8 @@ const RegisterScreen = ({ navigation }) => {
     last_name: '',
   });
   const [loading, setLoading] = useState(false);
-  const [customLogo, setCustomLogo] = useState(null);
-  const [sidebarColor, setSidebarColor] = useState('#3b82f6');
   const { register } = useAuth();
-
-  useEffect(() => {
-    const loadCustomSettings = async () => {
-      try {
-        const savedLogo = await AsyncStorage.getItem('customLogo');
-        const savedColor = await AsyncStorage.getItem('sidebarColor');
-        
-        if (savedLogo) {
-          setCustomLogo(savedLogo);
-        } else {
-          try {
-            const settings = await settingsAPI.getSettings();
-            if (settings.customLogo) {
-              setCustomLogo(settings.customLogo);
-              await AsyncStorage.setItem('customLogo', settings.customLogo);
-            }
-          } catch (error) {
-            console.error('Error fetching settings:', error);
-          }
-        }
-        
-        if (savedColor) {
-          setSidebarColor(savedColor);
-        } else {
-          try {
-            const settings = await settingsAPI.getSettings();
-            if (settings.sidebarColor) {
-              setSidebarColor(settings.sidebarColor);
-              await AsyncStorage.setItem('sidebarColor', settings.sidebarColor);
-            }
-          } catch (error) {
-            console.error('Error fetching settings:', error);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading custom settings:', error);
-      }
-    };
-    loadCustomSettings();
-  }, []);
+  const { settings } = useSettings();
 
   const handleChange = (field, value) => {
     setFormData(prev => ({
@@ -151,11 +109,11 @@ const RegisterScreen = ({ navigation }) => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoContainer}>
-          <View style={[styles.logo, { backgroundColor: sidebarColor }]}>
-            {customLogo ? (
-              <Image source={{ uri: customLogo }} style={styles.logoImage} />
+          <View style={[styles.logo, { backgroundColor: settings.sidebarColor }]}>
+            {settings.customLogo ? (
+              <Image source={{ uri: settings.customLogo }} style={styles.logoImage} />
             ) : (
-              <Text style={styles.logoText}>B-SIMS</Text>
+              <Text style={styles.logoText}>{settings.appName}</Text>
             )}
           </View>
           <Text style={styles.subtitle}>Barangay Information Management System</Text>
@@ -239,7 +197,7 @@ const RegisterScreen = ({ navigation }) => {
           </View>
 
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: sidebarColor }, loading && styles.buttonDisabled]}
+            style={[styles.button, { backgroundColor: settings.sidebarColor }, loading && styles.buttonDisabled]}
             onPress={handleSubmit}
             disabled={loading}
           >

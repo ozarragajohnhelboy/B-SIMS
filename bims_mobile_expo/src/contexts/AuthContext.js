@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authAPI } from '../services/api';
+import { authAPI, residentsAPI } from '../services/api';
 
 const AuthContext = createContext(undefined);
 
@@ -15,6 +15,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   const isAuthenticated = !!user;
 
@@ -22,10 +23,22 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
       const userData = await AsyncStorage.getItem('userData');
+      const onboardingCompleted = await AsyncStorage.getItem('onboardingCompleted');
       
       if (token && userData) {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
+        
+        if (parsedUser.role === 'resident' && !onboardingCompleted) {
+          try {
+            const residentProfile = await residentsAPI.getResident(parsedUser.id);
+            if (!residentProfile) {
+              setNeedsOnboarding(true);
+            }
+          } catch (error) {
+            setNeedsOnboarding(true);
+          }
+        }
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
@@ -45,6 +58,21 @@ export const AuthProvider = ({ children }) => {
         await AsyncStorage.setItem('userToken', response.access);
         await AsyncStorage.setItem('userData', JSON.stringify(response.user));
         setUser(response.user);
+        
+        if (response.user.role === 'resident') {
+          const onboardingCompleted = await AsyncStorage.getItem('onboardingCompleted');
+          if (!onboardingCompleted) {
+            try {
+              const residentProfile = await residentsAPI.getResident(response.user.id);
+              if (!residentProfile) {
+                setNeedsOnboarding(true);
+              }
+            } catch (error) {
+              setNeedsOnboarding(true);
+            }
+          }
+        }
+        
         return { success: true };
       } else {
         return { success: false, error: 'Invalid credentials' };
@@ -112,8 +140,15 @@ export const AuthProvider = ({ children }) => {
     } finally {
       await AsyncStorage.removeItem('userToken');
       await AsyncStorage.removeItem('userData');
+      await AsyncStorage.removeItem('onboardingCompleted');
       setUser(null);
+      setNeedsOnboarding(false);
     }
+  };
+
+  const completeOnboarding = async () => {
+    await AsyncStorage.setItem('onboardingCompleted', 'true');
+    setNeedsOnboarding(false);
   };
 
   useEffect(() => {
@@ -124,9 +159,11 @@ export const AuthProvider = ({ children }) => {
     user,
     isLoading,
     isAuthenticated,
+    needsOnboarding,
     login,
     register,
     logout,
+    completeOnboarding,
     checkAuthStatus,
   };
 

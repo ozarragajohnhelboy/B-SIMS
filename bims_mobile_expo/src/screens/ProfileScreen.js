@@ -26,8 +26,8 @@ const ProfileScreen = ({ navigation }) => {
 
   const loadResidentData = async () => {
     try {
-      if (user?.resident_id) {
-        const data = await residentsAPI.getResident(user.resident_id);
+      if (user?.id) {
+        const data = await residentsAPI.getResident(user.id);
         setResidentDetails(data);
         setProfileData({
           contact_number: data.emergency_contact_number || user.contact_number || '',
@@ -35,15 +35,20 @@ const ProfileScreen = ({ navigation }) => {
         });
       }
     } catch (error) {
-      console.error('Error loading resident data:', error);
+      console.log('Error loading resident data (non-fatal):', error?.message || error);
+      // Don't show alert for network errors - just use defaults
+      if (error?.message?.includes('Network Error')) {
+        console.log('Network error - using default profile data');
+        return;
+      }
       Alert.alert('Error', 'Failed to load profile data');
     }
   };
 
   const handleSave = async () => {
     try {
-      if (user?.resident_id) {
-        await residentsAPI.updateProfile(user.resident_id, profileData);
+      if (user?.id) {
+        await residentsAPI.updateProfile(user.id, profileData);
         Alert.alert('Success', 'Profile updated successfully');
         setEditing(false);
         loadResidentData();
@@ -64,12 +69,12 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Profile</Text>
           <TouchableOpacity 
-            style={[styles.actionButton, editing && styles.cancelButton]} 
-            onPress={() => setEditing(!editing)}
+            style={styles.settingsButton}
+            onPress={() => navigation.navigate('ProfileSettings')}
           >
-            <Text style={[styles.actionButtonText, editing && styles.cancelButtonText]}>
-              {editing ? 'Cancel' : 'Edit'}
-            </Text>
+            <View style={styles.settingsIcon}>
+              <View style={styles.settingsGear} />
+            </View>
           </TouchableOpacity>
         </View>
       </View>
@@ -311,6 +316,33 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#111827',
     letterSpacing: 0.3,
+  },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  settingsIcon: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  settingsGear: {
+    width: 16,
+    height: 16,
+    borderWidth: 2,
+    borderColor: '#374151',
+    borderRadius: 8,
+    position: 'relative',
   },
   actionButton: {
     backgroundColor: '#3B82F6',

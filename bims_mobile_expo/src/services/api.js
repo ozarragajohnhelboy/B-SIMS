@@ -6,7 +6,7 @@ const BASE_URL = API_CONFIG.BASE_URL;
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: API_CONFIG.TIMEOUT || 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -73,17 +73,32 @@ export const residentsAPI = {
   },
 
   getResident: async (id) => {
-    const response = await api.get(`/residents/${id}/`);
+    const response = await api.get('/residents/mobile/profile/');
+    return response.data;
+  },
+
+  createResident: async (data) => {
+    const response = await api.post('/residents/mobile/create/', data);
     return response.data;
   },
 
   updateProfile: async (id, data) => {
-    const response = await api.patch(`/residents/${id}/`, data);
+    const response = await api.patch('/residents/mobile/profile/', data);
     return response.data;
   },
 
   getStats: async () => {
     const response = await api.get('/residents/stats/');
+    return response.data;
+  },
+
+  getPuroks: async () => {
+    const response = await api.get('/residents/mobile/puroks/');
+    return response.data;
+  },
+
+  getHouseholds: async (purokId) => {
+    const response = await api.get(`/residents/mobile/puroks/${purokId}/households/`);
     return response.data;
   },
 };

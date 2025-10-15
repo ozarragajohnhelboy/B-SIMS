@@ -8,6 +8,7 @@ from .views import (
     BlotterListView, BlotterDetailView,
     resident_stats_view, document_stats_view, blotter_stats_view
 )
+from .views.resident_views import PurokListView as MobilePurokListView, HouseholdListView as MobileHouseholdListView, MobileResidentCreateView, MobileResidentDetailView
 from .views.stats_views import dashboard_stats
 
 urlpatterns = [
@@ -27,4 +28,8 @@ urlpatterns = [
     path('blotters/', BlotterListView.as_view(), name='blotter-list'),
     path('blotters/<int:pk>/', BlotterDetailView.as_view(), name='blotter-detail'),
     path('blotters/stats/', blotter_stats_view, name='blotter-stats'),
+    path('mobile/puroks/', MobilePurokListView.as_view(), name='mobile-purok-list'),
+    path('mobile/puroks/<int:purok_id>/households/', MobileHouseholdListView.as_view(), name='mobile-household-list'),
+    path('mobile/create/', MobileResidentCreateView.as_view(), name='mobile-resident-create'),
+    path('mobile/profile/', MobileResidentDetailView.as_view(), name='mobile-resident-profile'),
 ]

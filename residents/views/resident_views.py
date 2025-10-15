@@ -2,8 +2,8 @@ from rest_framework import generics, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from accounts.permissions import SecretaryPermission
 from core.utils import log_activity
-from ..models import Resident
-from ..serializers import ResidentSerializer, ResidentCreateSerializer
+from ..models import Resident, Purok, Household
+from ..serializers import ResidentSerializer, ResidentCreateSerializer, PurokSerializer, HouseholdSerializer
 
 class ResidentListView(generics.ListCreateAPIView):
     queryset = Resident.objects.all()
@@ -56,3 +56,49 @@ class ResidentDetailView(generics.RetrieveUpdateDestroyAPIView):
             user_agent=self.request.META.get('HTTP_USER_AGENT', '')
         )
         instance.delete()
+
+class PurokListView(generics.ListAPIView):
+    queryset = Purok.objects.all()
+    serializer_class = PurokSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class HouseholdListView(generics.ListAPIView):
+    serializer_class = HouseholdSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        purok_id = self.kwargs.get('purok_id')
+        return Household.objects.filter(purok_id=purok_id)
+
+class MobileResidentCreateView(generics.CreateAPIView):
+    serializer_class = ResidentCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        resident = serializer.save(user=self.request.user)
+        log_activity(
+            user=self.request.user,
+            action='create',
+            description=f'Created resident profile: {resident.first_name} {resident.last_name}',
+            content_object=resident,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )
+
+class MobileResidentDetailView(generics.RetrieveUpdateAPIView):
+    serializer_class = ResidentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_object(self):
+        return Resident.objects.get(user=self.request.user)
+    
+    def perform_update(self, serializer):
+        resident = serializer.save()
+        log_activity(
+            user=self.request.user,
+            action='update',
+            description=f'Updated resident profile: {resident.first_name} {resident.last_name}',
+            content_object=resident,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+        )

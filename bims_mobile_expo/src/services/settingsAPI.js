@@ -10,7 +10,8 @@ export const settingsAPI = {
         console.log('Settings API requires authentication - skipping');
         return {};
       }
-      console.error('Settings API error:', error);
+      // Quietly return defaults to avoid crashing UX on network hiccups
+      console.log('Settings API error (non-fatal):', error?.message || error);
       return {};
     }
   },
