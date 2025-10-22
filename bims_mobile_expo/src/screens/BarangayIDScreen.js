@@ -43,13 +43,15 @@ const BarangayIDScreen = ({ navigation }) => {
   const loadResidentData = async () => {
     try {
       setLoading(true);
-      if (user?.resident_id) {
-        const data = await residentsAPI.getResident(user.resident_id);
+      if (user?.id) {
+        const data = await residentsAPI.getResident(user.id);
         setResidentDetails(data);
       }
     } catch (error) {
-      console.error('Error loading resident data:', error);
-      Alert.alert('Error', 'Failed to load ID information');
+      console.log('Error loading resident data for ID (non-fatal):', error?.message || error);
+      if (!error?.message?.includes('Network Error')) {
+        Alert.alert('Error', 'Failed to load ID information');
+      }
     } finally {
       setLoading(false);
     }
@@ -167,8 +169,11 @@ const BarangayIDScreen = ({ navigation }) => {
                 <View style={styles.idFooter}>
                   <Text style={styles.footerLabel}>Emergency Contact</Text>
                   <Text style={styles.footerValue}>
-                    {residentDetails?.emergency_contact_number || 'Not provided'}
+                    {residentDetails?.emergency_contact_name || 'Not provided'}
                   </Text>
+                  {residentDetails?.emergency_contact_number ? (
+                    <Text style={styles.footerSubValue}>{residentDetails.emergency_contact_number}</Text>
+                  ) : null}
                 </View>
               </View>
             </View>
@@ -458,6 +463,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#111827',
+  },
+  footerSubValue: {
+    fontSize: 14,
+    color: '#374151',
+    marginTop: 2,
+    fontWeight: '500',
   },
   infoCard: {
     backgroundColor: 'white',

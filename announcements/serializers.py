@@ -46,6 +46,8 @@ class AnnouncementDetailSerializer(serializers.ModelSerializer):
 
 
 class AnnouncementCreateSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=AnnouncementCategory.objects.filter(is_active=True))
+    
     class Meta:
         model = Announcement
         fields = ['title', 'content', 'category', 'priority', 'status', 'publish_date', 'expiry_date', 
@@ -55,6 +57,20 @@ class AnnouncementCreateSerializer(serializers.ModelSerializer):
         if not value.is_active:
             raise serializers.ValidationError("Selected category is not active.")
         return value
+
+    def to_internal_value(self, data):
+        mutable = dict(data)
+        category_value = mutable.get('category')
+        if isinstance(category_value, dict):
+            category_id = category_value.get('id')
+            mutable['category'] = category_id
+        status_value = mutable.get('status')
+        if isinstance(status_value, str):
+            mutable['status'] = status_value.lower()
+        priority_value = mutable.get('priority')
+        if isinstance(priority_value, str):
+            mutable['priority'] = priority_value.lower()
+        return super().to_internal_value(mutable)
 
 
 class NotificationTemplateSerializer(serializers.ModelSerializer):

@@ -18,6 +18,13 @@ class AnnouncementAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
     readonly_fields = ['views_count', 'created_at', 'updated_at']
 
+    def save_model(self, request, obj, form, change):
+        if change:
+            obj.updated_by = request.user
+        else:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(AnnouncementView)
 class AnnouncementViewAdmin(admin.ModelAdmin):

@@ -12,6 +12,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import ProfileSettingsScreen from './src/screens/ProfileSettingsScreen';
 import BarangayIDScreen from './src/screens/BarangayIDScreen';
 import ContactsScreen from './src/screens/ContactsScreen';
+import AnnouncementsScreen from './src/screens/AnnouncementsScreen';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -62,6 +63,7 @@ const AppNavigator = () => {
                 <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
                 <Stack.Screen name="BarangayID" component={BarangayIDScreen} />
                 <Stack.Screen name="Contacts" component={ContactsScreen} />
+                <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
               </>
             )}
           </>

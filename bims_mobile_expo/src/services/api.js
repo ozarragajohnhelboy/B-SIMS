@@ -132,12 +132,17 @@ export const documentsAPI = {
 
 export const announcementsAPI = {
   getAnnouncements: async () => {
-    const response = await api.get('/announcements/');
+    const response = await api.get('/announcements/mobile/');
     return response.data;
   },
 
   getAnnouncement: async (id) => {
     const response = await api.get(`/announcements/${id}/`);
+    return response.data;
+  },
+
+  getStats: async () => {
+    const response = await api.get('/announcements/stats/');
     return response.data;
   },
 };

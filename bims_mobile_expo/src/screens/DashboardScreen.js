@@ -28,19 +28,22 @@ const DashboardScreen = ({ navigation }) => {
 
   const loadDashboardData = async () => {
     try {
-      const [documentsRes, announcementsRes, eventsRes] = await Promise.allSettled([
+      const [documentsRes, announcementsRes, eventsRes, announcementStatsRes] = await Promise.allSettled([
         documentsAPI.getMyRequests(),
         announcementsAPI.getAnnouncements(),
         projectsAPI.getUpcomingEvents(),
+        announcementsAPI.getStats(),
       ]);
 
       const activeRequests = documentsRes.status === 'fulfilled' 
         ? documentsRes.value.filter(doc => doc.status === 'pending' || doc.status === 'approved').length 
         : 0;
 
-      const announcements = announcementsRes.status === 'fulfilled'
-        ? announcementsRes.value.filter(ann => ann.status === 'published').length
-        : 0;
+      const announcements = announcementStatsRes.status === 'fulfilled'
+        ? (announcementStatsRes.value?.published_announcements ?? 0)
+        : (announcementsRes.status === 'fulfilled'
+            ? announcementsRes.value.length
+            : 0);
 
       const upcomingEvents = eventsRes.status === 'fulfilled'
         ? eventsRes.value.length
@@ -195,7 +198,7 @@ const DashboardScreen = ({ navigation }) => {
               <Text style={styles.serviceTitle}>Documents</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7} onPress={() => navigation.navigate('Announcements')}>
               <View style={[styles.serviceIcon, { backgroundColor: '#E0E7FF' }]}>
                 <View style={styles.newsIconWrapper}>
                   <View style={styles.newsIconPaper} />
@@ -204,7 +207,9 @@ const DashboardScreen = ({ navigation }) => {
                   <View style={styles.newsIconLine3} />
                 </View>
               </View>
-              <Text style={styles.serviceTitle}>News</Text>
+              <Text style={[styles.serviceTitle, styles.serviceTitleSmall]} numberOfLines={1}>
+                Announcements
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7} onPress={handleLogout}>
@@ -537,6 +542,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     textAlign: 'center',
+  },
+  serviceTitleSmall: {
+    fontSize: 11,
   },
 });
 
