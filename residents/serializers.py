@@ -63,6 +63,7 @@ class DocumentRequestCreateSerializer(serializers.ModelSerializer):
         model = DocumentRequest
         exclude = ['request_number', 'created_at', 'updated_at']
         extra_kwargs = {
+            'resident': {'required': False},
             'requested_by': {'required': False},
             'approved_by': {'required': False}
         }

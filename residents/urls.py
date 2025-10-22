@@ -9,6 +9,7 @@ from .views import (
     resident_stats_view, document_stats_view, blotter_stats_view
 )
 from .views.resident_views import PurokListView as MobilePurokListView, HouseholdListView as MobileHouseholdListView, MobileResidentCreateView, MobileResidentDetailView
+from .views.document_views import MobileDocumentTypeListView, MobileDocumentRequestListCreateView
 from .views.stats_views import dashboard_stats
 
 urlpatterns = [
@@ -32,4 +33,6 @@ urlpatterns = [
     path('mobile/puroks/<int:purok_id>/households/', MobileHouseholdListView.as_view(), name='mobile-household-list'),
     path('mobile/create/', MobileResidentCreateView.as_view(), name='mobile-resident-create'),
     path('mobile/profile/', MobileResidentDetailView.as_view(), name='mobile-resident-profile'),
+    path('mobile/documents/types/', MobileDocumentTypeListView.as_view(), name='mobile-document-type-list'),
+    path('mobile/documents/requests/', MobileDocumentRequestListCreateView.as_view(), name='mobile-document-request-list-create'),
 ]

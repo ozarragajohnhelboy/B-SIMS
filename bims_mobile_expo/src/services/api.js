@@ -105,22 +105,22 @@ export const residentsAPI = {
 
 export const documentsAPI = {
   getDocuments: async () => {
-    const response = await api.get('/residents/document-requests/');
+    const response = await api.get('/residents/mobile/documents/requests/');
     return response.data;
   },
 
   createDocumentRequest: async (data) => {
-    const response = await api.post('/residents/document-requests/', data);
+    const response = await api.post('/residents/mobile/documents/requests/', data);
     return response.data;
   },
 
   getDocumentTypes: async () => {
-    const response = await api.get('/residents/document-types/');
-    return response.data;
+    const response = await api.get('/residents/mobile/documents/types/');
+    return response.data?.results || response.data;
   },
 
   getMyRequests: async () => {
-    const response = await api.get('/residents/document-requests/');
+    const response = await api.get('/residents/mobile/documents/requests/');
     return response.data;
   },
 

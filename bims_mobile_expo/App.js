@@ -13,6 +13,8 @@ import ProfileSettingsScreen from './src/screens/ProfileSettingsScreen';
 import BarangayIDScreen from './src/screens/BarangayIDScreen';
 import ContactsScreen from './src/screens/ContactsScreen';
 import AnnouncementsScreen from './src/screens/AnnouncementsScreen';
+import DocumentRequestsScreen from './src/screens/DocumentRequestsScreen';
+import DocumentRequestScreen from './src/screens/DocumentRequestScreen';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -64,6 +66,8 @@ const AppNavigator = () => {
                 <Stack.Screen name="BarangayID" component={BarangayIDScreen} />
                 <Stack.Screen name="Contacts" component={ContactsScreen} />
                 <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
+                <Stack.Screen name="DocumentRequests" component={DocumentRequestsScreen} />
+                <Stack.Screen name="DocumentRequest" component={DocumentRequestScreen} />
               </>
             )}
           </>

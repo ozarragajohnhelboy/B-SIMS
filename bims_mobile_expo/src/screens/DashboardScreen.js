@@ -186,7 +186,7 @@ const DashboardScreen = ({ navigation }) => {
               <Text style={styles.serviceTitle}>Contacts</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7} onPress={() => navigation.navigate('DocumentRequests')}>
               <View style={[styles.serviceIcon, { backgroundColor: '#FCE7F3' }]}>
                 <View style={styles.documentsIconWrapper}>
                   <View style={styles.documentsIconPage} />
