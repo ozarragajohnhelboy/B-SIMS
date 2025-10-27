@@ -264,4 +264,11 @@ export const logActivity = async (action, description, metadata = {}) => {
   }
 };
 
+export const complaintsAPI = {
+  getComplaints: (params) => api.get('/residents/complaints/', params),
+  getComplaint: (id) => api.get(`/residents/complaints/${id}/`),
+  updateComplaint: (id, data) => api.put(`/residents/complaints/${id}/`, data),
+  deleteComplaint: (id) => api.delete(`/residents/complaints/${id}/`),
+};
+
 export default api;

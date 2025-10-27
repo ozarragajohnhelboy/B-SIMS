@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   RefreshControl,
+  Linking,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -79,6 +80,26 @@ const DashboardScreen = ({ navigation }) => {
       ]
     );
   };
+
+  const handleCall = (number) => {
+    const phoneUrl = `tel:${number}`;
+    Linking.canOpenURL(phoneUrl)
+      .then((supported) => {
+        if (supported) {
+          Linking.openURL(phoneUrl);
+        } else {
+          Alert.alert('Error', 'Unable to make a call from this device');
+        }
+      })
+      .catch((err) => console.error('Error making call:', err));
+  };
+
+  const emergencyContacts = [
+    { title: 'Emergency Hotline', number: '911', color: '#EF4444' },
+    { title: 'Barangay Hall', number: '(02) 8123-4567', color: '#3B82F6' },
+    { title: 'Health Center', number: '(02) 8234-5678', color: '#10B981' },
+    { title: 'Police', number: '(02) 8345-6789', color: '#F59E0B' },
+  ];
 
   const summaryCards = [
     { title: 'Active Requests', count: dashboardData.activeRequests.toString(), color: '#3b82f6' },
@@ -174,16 +195,16 @@ const DashboardScreen = ({ navigation }) => {
 
             <TouchableOpacity 
               style={styles.serviceCard}
-              onPress={() => navigation.navigate('Contacts')}
+              onPress={() => navigation.navigate('Complaints')}
               activeOpacity={0.7}
             >
-              <View style={[styles.serviceIcon, { backgroundColor: '#FEF3C7' }]}>
-                <View style={styles.contactsIconWrapper}>
-                  <View style={styles.contactsIconPhone} />
-                  <View style={styles.contactsIconHandle} />
+              <View style={[styles.serviceIcon, { backgroundColor: '#FEE2E2' }]}>
+                <View style={styles.complaintsIconWrapper}>
+                  <View style={styles.complaintsIconExclamation} />
+                  <View style={styles.complaintsIconCircle} />
                 </View>
               </View>
-              <Text style={styles.serviceTitle}>Contacts</Text>
+              <Text style={styles.serviceTitle}>Complaints</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7} onPress={() => navigation.navigate('DocumentRequests')}>
@@ -222,6 +243,32 @@ const DashboardScreen = ({ navigation }) => {
               <Text style={styles.serviceTitle}>Logout</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View style={styles.quickAccessSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Emergency Contacts</Text>
+          </View>
+          
+          {emergencyContacts.map((contact, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.contactCard}
+              onPress={() => handleCall(contact.number)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.contactIcon, { backgroundColor: contact.color }]}>
+                <View style={styles.phoneIconWrapper}>
+                  <View style={styles.phoneIconBody} />
+                  <View style={styles.phoneIconHandle} />
+                </View>
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactTitle}>{contact.title}</Text>
+                <Text style={styles.contactNumber}>{contact.number}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
     </View>
@@ -415,28 +462,28 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 4,
   },
-  contactsIconWrapper: {
+  complaintsIconWrapper: {
     width: 24,
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
-  contactsIconPhone: {
-    width: 16,
-    height: 16,
+  complaintsIconCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#F59E0B',
-    borderRadius: 3,
-    transform: [{ rotate: '-10deg' }],
+    borderColor: '#EF4444',
   },
-  contactsIconHandle: {
-    width: 4,
-    height: 8,
-    backgroundColor: '#F59E0B',
-    borderRadius: 2,
+  complaintsIconExclamation: {
+    width: 2,
+    height: 10,
+    backgroundColor: '#EF4444',
     position: 'absolute',
-    bottom: 2,
-    right: 2,
+    top: 2,
+    left: 9,
+    borderRadius: 1,
   },
   documentsIconWrapper: {
     width: 24,
@@ -545,6 +592,63 @@ const styles = StyleSheet.create({
   },
   serviceTitleSmall: {
     fontSize: 11,
+  },
+  contactCard: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  contactIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  phoneIconWrapper: {
+    width: 24,
+    height: 24,
+    position: 'relative',
+  },
+  phoneIconBody: {
+    width: 18,
+    height: 18,
+    borderWidth: 2,
+    borderColor: 'white',
+    borderRadius: 3,
+    transform: [{ rotate: '-10deg' }],
+  },
+  phoneIconHandle: {
+    width: 4,
+    height: 6,
+    backgroundColor: 'white',
+    borderRadius: 2,
+    position: 'absolute',
+    bottom: 1,
+    right: 1,
+  },
+  contactInfo: {
+    flex: 1,
+  },
+  contactTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  contactNumber: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '600',
   },
 });
 

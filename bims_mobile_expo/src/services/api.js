@@ -176,6 +176,23 @@ export const financialAPI = {
   },
 };
 
+export const complaintsAPI = {
+  getMyComplaints: async () => {
+    const response = await api.get('/residents/mobile/complaints/');
+    return response.data;
+  },
+
+  createComplaint: async (formData, images) => {
+    const response = await api.post('/residents/mobile/complaints/', formData);
+    return response.data;
+  },
+
+  getComplaint: async (id) => {
+    const response = await api.get(`/residents/mobile/complaints/${id}/`);
+    return response.data;
+  },
+};
+
 export const projectsAPI = {
   getProjects: async () => {
     const response = await api.get('/projects/');

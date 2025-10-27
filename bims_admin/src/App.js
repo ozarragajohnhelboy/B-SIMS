@@ -8,6 +8,7 @@ import ResidentsManagement from './components/ResidentsManagement';
 import HouseholdsManagement from './components/HouseholdsManagement';
 import DocumentsManagement from './components/DocumentsManagement';
 import BlottersManagement from './components/BlottersManagement';
+import ComplaintsManagement from './components/ComplaintsManagement';
 import FinancialManagement from './components/FinancialManagement';
 import ProjectManagement from './components/ProjectManagement';
 import AnnouncementManagement from './components/AnnouncementManagement';
@@ -71,6 +72,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <BlottersManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/complaints"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ComplaintsManagement />
             </Layout>
           </ProtectedRoute>
         }

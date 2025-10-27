@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Purok, Household, Resident, DocumentType, DocumentRequest, Blotter
+from .models import Purok, Household, Resident, DocumentType, DocumentRequest, Blotter, Complaint, ComplaintAttachment
 
 
 @admin.register(Purok)
@@ -110,3 +110,38 @@ class BlotterAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+class ComplaintAttachmentInline(admin.TabularInline):
+    model = ComplaintAttachment
+    extra = 0
+
+
+@admin.register(Complaint)
+class ComplaintAdmin(admin.ModelAdmin):
+    list_display = ('title', 'submitted_by', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('title', 'details', 'submitted_by__full_name')
+    readonly_fields = ('created_at', 'updated_at')
+    inlines = [ComplaintAttachmentInline]
+    
+    fieldsets = (
+        ('Complaint Information', {
+            'fields': ('title', 'details', 'submitted_by')
+        }),
+        ('Status & Response', {
+            'fields': ('status', 'response', 'responded_by', 'responded_at')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(ComplaintAttachment)
+class ComplaintAttachmentAdmin(admin.ModelAdmin):
+    list_display = ('complaint', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('complaint__title',)
+    readonly_fields = ('created_at',)

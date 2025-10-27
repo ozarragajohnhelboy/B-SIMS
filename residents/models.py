@@ -240,3 +240,41 @@ class Blotter(models.Model):
         if not self.blotter_number:
             self.blotter_number = f"BLT{Blotter.objects.count() + 1:06d}"
         super().save(*args, **kwargs)
+
+
+class Complaint(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('acknowledged', 'Acknowledged'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+        ('closed', 'Closed'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    details = models.TextField()
+    submitted_by = models.ForeignKey(Resident, on_delete=models.CASCADE, related_name='complaints')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    response = models.TextField(blank=True)
+    responded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='responded_complaints')
+    responded_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title} - {self.submitted_by.full_name}"
+
+
+class ComplaintAttachment(models.Model):
+    complaint = models.ForeignKey(Complaint, on_delete=models.CASCADE, related_name='attachments')
+    image = models.ImageField(upload_to='complaints/')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"Attachment for {self.complaint.title}"

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Purok, Household, Resident, DocumentType, DocumentRequest, Blotter
+from .models import Purok, Household, Resident, DocumentType, DocumentRequest, Blotter, Complaint, ComplaintAttachment
 
 
 class PurokSerializer(serializers.ModelSerializer):
@@ -85,4 +85,45 @@ class BlotterCreateSerializer(serializers.ModelSerializer):
         exclude = ['blotter_number', 'created_at', 'updated_at']
         extra_kwargs = {
             'recorded_by': {'required': False}
+        }
+
+
+class ComplaintAttachmentSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ComplaintAttachment
+        fields = '__all__'
+        read_only_fields = ['created_at']
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+
+class ComplaintSerializer(serializers.ModelSerializer):
+    submitted_by_name = serializers.CharField(source='submitted_by.full_name', read_only=True)
+    responded_by_name = serializers.CharField(source='responded_by.get_full_name', read_only=True)
+    attachments = ComplaintAttachmentSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Complaint
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class ComplaintCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Complaint
+        exclude = ['created_at', 'updated_at']
+        extra_kwargs = {
+            'submitted_by': {'required': False},
+            'status': {'required': False},
+            'response': {'required': False},
+            'responded_by': {'required': False},
+            'responded_at': {'required': False}
         }

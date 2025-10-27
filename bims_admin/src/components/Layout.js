@@ -80,6 +80,12 @@ const Sidebar = ({ isOpen, onClose }) => {
           <div className="absolute top-2.5 left-0.5 w-3 h-0.5 bg-white rounded-sm"></div>
         </div>
       ),
+      complaints: (
+        <div className="w-4 h-4 relative">
+          <div className="absolute inset-0 bg-gray-600 rounded-full"></div>
+          <div className="absolute top-0.5 left-1.5 w-1 h-3 bg-white rounded-sm"></div>
+        </div>
+      ),
       financial: (
         <div className="w-4 h-4 relative">
           <div className="absolute inset-0 bg-gray-600 rounded-full"></div>
@@ -137,6 +143,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Households', path: '/households', icon: 'households', roles: ['admin', 'secretary'] },
     { name: 'Documents', path: '/documents', icon: 'documents', roles: ['admin', 'secretary'] },
     { name: 'Blotters', path: '/blotters', icon: 'blotters', roles: ['admin', 'secretary'] },
+    { name: 'Complaints', path: '/complaints', icon: 'complaints', roles: ['admin', 'secretary'] },
     { name: 'Financial', path: '/financial', icon: 'financial', roles: ['admin', 'treasurer'] },
     { name: 'Projects', path: '/projects', icon: 'projects', roles: ['admin'] },
     { name: 'Announcements', path: '/announcements', icon: 'announcements', roles: ['admin', 'secretary'] },
