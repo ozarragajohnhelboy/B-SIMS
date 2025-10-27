@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
 import { documentsAPI } from '../services/api';
+import PaymentSelectionScreen from './PaymentSelectionScreen';
 
 const statusStyles = {
   pending: { bg: '#FEF3C7', text: '#92400E', label: 'PENDING' },
@@ -12,6 +13,8 @@ const statusStyles = {
 const DocumentRequestsScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -30,10 +33,32 @@ const DocumentRequestsScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
+  const handleRequestPress = (item) => {
+    if (item.status === 'approved') {
+      setSelectedRequest(item);
+      setShowPaymentModal(true);
+    }
+  };
+
+  const handleSelectPayment = (method) => {
+    setShowPaymentModal(false);
+    navigation.navigate('Payment', {
+      request: selectedRequest,
+      paymentMethod: method,
+    });
+  };
+
   const renderItem = ({ item }) => {
     const stylesFor = statusStyles[item.status] || statusStyles.pending;
+    const isClickable = item.status === 'approved';
+    
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={[styles.card, isClickable && styles.clickableCard]}
+        onPress={() => handleRequestPress(item)}
+        disabled={!isClickable}
+        activeOpacity={isClickable ? 0.7 : 1}
+      >
         <View style={styles.rowBetween}>
           <Text style={styles.title}>{item.document_type?.name || item.document_type || 'Document'}</Text>
           <View style={[styles.statusPill, { backgroundColor: stylesFor.bg }]}>
@@ -45,7 +70,12 @@ const DocumentRequestsScreen = ({ navigation }) => {
           <Text style={styles.secondary}>Ref: {item.reference || item.id}</Text>
           {item.created_at ? <Text style={styles.secondary}>{new Date(item.created_at).toLocaleDateString()}</Text> : null}
         </View>
-      </View>
+        {isClickable && (
+          <View style={styles.paymentHint}>
+            <Text style={styles.paymentHintText}>Tap to choose payment method</Text>
+          </View>
+        )}
+      </TouchableOpacity>
     );
   };
 
@@ -70,6 +100,13 @@ const DocumentRequestsScreen = ({ navigation }) => {
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
+
+      <PaymentSelectionScreen
+        visible={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSelectPayment={handleSelectPayment}
+        request={selectedRequest}
+      />
     </View>
   );
 };
@@ -86,12 +123,15 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: 'white', fontWeight: '700' },
   listContent: { padding: 16 },
   card: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
+  clickableCard: { borderWidth: 2, borderColor: '#3B82F6' },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 6 },
   meta: { fontSize: 14, color: '#374151', marginBottom: 8 },
   secondary: { fontSize: 12, color: '#6B7280', fontWeight: '600' },
   statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   statusText: { fontSize: 12, fontWeight: '700' },
+  paymentHint: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  paymentHintText: { fontSize: 12, color: '#3B82F6', fontWeight: '600', textAlign: 'center' },
 });
 
 export default DocumentRequestsScreen;

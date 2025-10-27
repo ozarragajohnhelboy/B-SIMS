@@ -15,6 +15,7 @@ import ContactsScreen from './src/screens/ContactsScreen';
 import AnnouncementsScreen from './src/screens/AnnouncementsScreen';
 import DocumentRequestsScreen from './src/screens/DocumentRequestsScreen';
 import DocumentRequestScreen from './src/screens/DocumentRequestScreen';
+import PaymentScreen from './src/screens/PaymentScreen';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -68,6 +69,7 @@ const AppNavigator = () => {
                 <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
                 <Stack.Screen name="DocumentRequests" component={DocumentRequestsScreen} />
                 <Stack.Screen name="DocumentRequest" component={DocumentRequestScreen} />
+                <Stack.Screen name="Payment" component={PaymentScreen} />
               </>
             )}
           </>

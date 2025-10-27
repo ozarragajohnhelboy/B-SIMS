@@ -49,6 +49,7 @@ class DocumentTypeSerializer(serializers.ModelSerializer):
 class DocumentRequestSerializer(serializers.ModelSerializer):
     resident_name = serializers.CharField(source='resident.full_name', read_only=True)
     document_type_name = serializers.CharField(source='document_type.name', read_only=True)
+    document_type_fee = serializers.DecimalField(source='document_type.required_fee', max_digits=10, decimal_places=2, read_only=True)
     requested_by_name = serializers.CharField(source='requested_by.get_full_name', read_only=True)
     approved_by_name = serializers.CharField(source='approved_by.get_full_name', read_only=True)
     

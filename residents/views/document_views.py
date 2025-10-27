@@ -97,9 +97,18 @@ class MobileDocumentRequestListCreateView(generics.ListCreateAPIView):
         return DocumentRequestSerializer
 
     def perform_create(self, serializer):
+        from django.db import transaction
+        
         resident = Resident.objects.get(user=self.request.user)
+        document_type_id = serializer.validated_data.get('document_type')
+        
+        # Get the document type's required fee
+        document_type = DocumentType.objects.get(id=document_type_id.id)
+        required_fee = document_type.required_fee
+        
         serializer.save(
             resident=resident,
             requested_by=self.request.user,
-            status='pending'
+            status='pending',
+            fee_paid=required_fee
         )
