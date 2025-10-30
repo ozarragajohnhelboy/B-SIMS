@@ -1,4 +1,4 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -14,6 +14,11 @@ from ..serializers import AnnouncementListSerializer, AnnouncementDetailSerializ
 class AnnouncementListView(generics.ListCreateAPIView):
     serializer_class = AnnouncementListSerializer
     permission_classes = [SecretaryPermission]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AnnouncementCreateSerializer
+        return AnnouncementListSerializer
 
     def get_queryset(self):
         queryset = Announcement.objects.select_related('category', 'created_by').all()
@@ -38,15 +43,18 @@ class AnnouncementListView(generics.ListCreateAPIView):
         return queryset.order_by('-is_pinned', '-publish_date', '-created_at')
 
     def perform_create(self, serializer):
-        announcement = serializer.save(created_by=self.request.user)
-        log_activity(
-            user=self.request.user,
-            action='create',
-            description=f'Created new announcement: {announcement.title} ({announcement.category.name})',
-            content_object=announcement,
-            ip_address=self.request.META.get('REMOTE_ADDR'),
-            user_agent=self.request.META.get('HTTP_USER_AGENT', '')
-        )
+        try:
+            announcement = serializer.save(created_by=self.request.user)
+            log_activity(
+                user=self.request.user,
+                action='create',
+                description=f'Created new announcement: {announcement.title} ({announcement.category.name})',
+                content_object=announcement,
+                ip_address=self.request.META.get('REMOTE_ADDR'),
+                user_agent=self.request.META.get('HTTP_USER_AGENT', '')
+            )
+        except Exception as e:
+            raise serializers.ValidationError(f"Error creating announcement: {str(e)}")
 
 
 class AnnouncementDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -153,3 +161,14 @@ def archive_announcement(request, pk):
     announcement.save()
     
     return Response({'status': 'archived'})
+
+
+class MobileAnnouncementListView(generics.ListAPIView):
+    """Mobile view for residents to see published announcements"""
+    serializer_class = AnnouncementListSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Announcement.objects.select_related('category', 'created_by').filter(
+            status='published'
+        ).order_by('-is_pinned', '-publish_date', '-created_at')

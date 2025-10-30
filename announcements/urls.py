@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     AnnouncementCategoryListView, AnnouncementCategoryDetailView, announcement_category_stats,
     AnnouncementListView, AnnouncementDetailView, track_announcement_view, announcement_stats,
-    publish_announcement, archive_announcement,
+    publish_announcement, archive_announcement, MobileAnnouncementListView,
     NotificationTemplateListView, NotificationTemplateDetailView, send_notification
 )
 
@@ -12,6 +12,7 @@ urlpatterns = [
     path('categories/stats/', announcement_category_stats, name='announcement-category-stats'),
     
     path('', AnnouncementListView.as_view(), name='announcement-list'),
+    path('mobile/', MobileAnnouncementListView.as_view(), name='mobile-announcement-list'),
     path('<int:pk>/', AnnouncementDetailView.as_view(), name='announcement-detail'),
     path('<int:pk>/track-view/', track_announcement_view, name='track-announcement-view'),
     path('<int:pk>/publish/', publish_announcement, name='publish-announcement'),

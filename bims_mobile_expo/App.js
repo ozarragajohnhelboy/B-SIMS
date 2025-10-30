@@ -11,7 +11,11 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ProfileSettingsScreen from './src/screens/ProfileSettingsScreen';
 import BarangayIDScreen from './src/screens/BarangayIDScreen';
-import ContactsScreen from './src/screens/ContactsScreen';
+import IncidentsScreen from './src/screens/IncidentsScreen';
+import AnnouncementsScreen from './src/screens/AnnouncementsScreen';
+import DocumentRequestsScreen from './src/screens/DocumentRequestsScreen';
+import DocumentRequestScreen from './src/screens/DocumentRequestScreen';
+import PaymentScreen from './src/screens/PaymentScreen';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -61,7 +65,11 @@ const AppNavigator = () => {
                 <Stack.Screen name="Profile" component={ProfileScreen} />
                 <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
                 <Stack.Screen name="BarangayID" component={BarangayIDScreen} />
-                <Stack.Screen name="Contacts" component={ContactsScreen} />
+                <Stack.Screen name="Complaints" component={IncidentsScreen} />
+                <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
+                <Stack.Screen name="DocumentRequests" component={DocumentRequestsScreen} />
+                <Stack.Screen name="DocumentRequest" component={DocumentRequestScreen} />
+                <Stack.Screen name="Payment" component={PaymentScreen} />
               </>
             )}
           </>

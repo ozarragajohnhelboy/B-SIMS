@@ -96,11 +96,15 @@ const DocumentsManagement = () => {
 
   const handleEdit = (request) => {
     setEditingRequest(request);
+    const feeToUse = request.fee_paid && parseFloat(request.fee_paid) > 0 
+      ? request.fee_paid 
+      : (request.document_type_fee || '');
+    
     setFormData({
       resident: request.resident,
       document_type: request.document_type,
       purpose: request.purpose,
-      fee_paid: request.fee_paid || '',
+      fee_paid: feeToUse,
       status: request.status,
       remarks: request.remarks || '',
     });
@@ -125,6 +129,26 @@ const DocumentsManagement = () => {
       showAlert('error', 'Failed to delete document request');
     } finally {
       setDeleteConfirm({ show: false, id: null, requestNumber: '' });
+    }
+  };
+
+  const handleStatusChange = async (requestId, newStatus) => {
+    try {
+      const request = documentRequests.find(r => r.id === requestId);
+      const updateData = {
+        resident: request.resident,
+        document_type: request.document_type,
+        purpose: request.purpose,
+        fee_paid: request.fee_paid || 0,
+        status: newStatus,
+        remarks: request.remarks || ''
+      };
+      
+      await documentsAPI.updateDocumentRequest(requestId, updateData);
+      showAlert('success', 'Status updated successfully');
+      await fetchData();
+    } catch (error) {
+      showAlert('error', 'Failed to update status');
     }
   };
 
@@ -298,9 +322,26 @@ const DocumentsManagement = () => {
                     <div className="text-sm text-gray-900">{request.document_type_name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-                      {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                    </span>
+                    <select
+                      value={request.status}
+                      onChange={(e) => handleStatusChange(request.id, e.target.value)}
+                      className={`px-4 py-1.5 pr-10 rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 ${getStatusColor(request.status)} border border-transparent hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-400`}
+                      style={{ 
+                        WebkitAppearance: 'none', 
+                        MozAppearance: 'none', 
+                        appearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 0.7rem center',
+                        backgroundSize: '0.75rem',
+                        paddingRight: '2.5rem'
+                      }}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="released">Released</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ₱{request.fee_paid || '0.00'}
@@ -402,13 +443,23 @@ const DocumentsManagement = () => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Document Type</label>
                     <select
                       value={formData.document_type}
-                      onChange={(e) => setFormData({...formData, document_type: e.target.value})}
+                      onChange={(e) => {
+                        const docTypeId = parseInt(e.target.value);
+                        const selectedType = documentTypes.find(t => t.id === docTypeId);
+                        setFormData({
+                          ...formData, 
+                          document_type: e.target.value,
+                          fee_paid: selectedType ? selectedType.required_fee : ''
+                        });
+                      }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                       required
                     >
                       <option value="">Select Document Type</option>
                       {documentTypes.map(type => (
-                        <option key={type.id} value={type.id}>{type.name}</option>
+                        <option key={type.id} value={type.id}>
+                          {type.name} (₱{type.required_fee || '0.00'})
+                        </option>
                       ))}
                     </select>
                   </div>

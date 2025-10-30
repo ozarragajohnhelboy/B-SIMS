@@ -105,22 +105,22 @@ export const residentsAPI = {
 
 export const documentsAPI = {
   getDocuments: async () => {
-    const response = await api.get('/residents/document-requests/');
+    const response = await api.get('/residents/mobile/documents/requests/');
     return response.data;
   },
 
   createDocumentRequest: async (data) => {
-    const response = await api.post('/residents/document-requests/', data);
+    const response = await api.post('/residents/mobile/documents/requests/', data);
     return response.data;
   },
 
   getDocumentTypes: async () => {
-    const response = await api.get('/residents/document-types/');
-    return response.data;
+    const response = await api.get('/residents/mobile/documents/types/');
+    return response.data?.results || response.data;
   },
 
   getMyRequests: async () => {
-    const response = await api.get('/residents/document-requests/');
+    const response = await api.get('/residents/mobile/documents/requests/');
     return response.data;
   },
 
@@ -132,12 +132,17 @@ export const documentsAPI = {
 
 export const announcementsAPI = {
   getAnnouncements: async () => {
-    const response = await api.get('/announcements/');
+    const response = await api.get('/announcements/mobile/');
     return response.data;
   },
 
   getAnnouncement: async (id) => {
     const response = await api.get(`/announcements/${id}/`);
+    return response.data;
+  },
+
+  getStats: async () => {
+    const response = await api.get('/announcements/stats/');
     return response.data;
   },
 };
@@ -167,6 +172,23 @@ export const financialAPI = {
 
   getExpenseRecords: async () => {
     const response = await api.get('/financial/expense/');
+    return response.data;
+  },
+};
+
+export const complaintsAPI = {
+  getMyComplaints: async () => {
+    const response = await api.get('/residents/mobile/complaints/');
+    return response.data;
+  },
+
+  createComplaint: async (formData, images) => {
+    const response = await api.post('/residents/mobile/complaints/', formData);
+    return response.data;
+  },
+
+  getComplaint: async (id) => {
+    const response = await api.get(`/residents/mobile/complaints/${id}/`);
     return response.data;
   },
 };
