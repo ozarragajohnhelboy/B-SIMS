@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../contexts/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { residentsAPI } from '../services/api';
 
 const OnboardingScreen = ({ navigation }) => {
@@ -43,7 +44,20 @@ const OnboardingScreen = ({ navigation }) => {
   const [households, setHouseholds] = useState([]);
 
   useEffect(() => {
-    loadPuroks();
+    let cancelled = false;
+    const ensureTokenThenLoad = async () => {
+      const token = await AsyncStorage.getItem('userToken');
+      if (cancelled) return;
+      if (token) {
+        loadPuroks();
+      } else {
+        setTimeout(ensureTokenThenLoad, 300);
+      }
+    };
+    ensureTokenThenLoad();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const loadPuroks = async () => {

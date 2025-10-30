@@ -22,9 +22,14 @@ const ProfileSettingsScreen = ({ navigation }) => {
     first_name: '',
     last_name: '',
     middle_name: '',
+    birth_date: '',
+    gender: '',
+    marital_status: '',
     contact_number: '',
     address: '',
     occupation: '',
+    relationship_to_head: '',
+    is_voter: false,
     emergency_contact_name: '',
     emergency_contact_number: '',
     emergency_contact_relationship: '',
@@ -46,9 +51,14 @@ const ProfileSettingsScreen = ({ navigation }) => {
         first_name: resident.first_name || '',
         last_name: resident.last_name || '',
         middle_name: resident.middle_name || '',
+        birth_date: resident.birth_date || '',
+        gender: resident.gender || '',
+        marital_status: resident.marital_status || '',
         contact_number: resident.contact_number || '',
         address: resident.address || '',
         occupation: resident.occupation || '',
+        relationship_to_head: resident.relationship_to_head || '',
+        is_voter: !!resident.is_voter,
         emergency_contact_name: resident.emergency_contact_name || '',
         emergency_contact_number: resident.emergency_contact_number || '',
         emergency_contact_relationship: resident.emergency_contact_relationship || '',
@@ -118,6 +128,33 @@ const ProfileSettingsScreen = ({ navigation }) => {
     </View>
   );
 
+  const renderChoiceRow = (field, label, options) => (
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.choiceRow}>
+        {options.map((opt) => (
+          <TouchableOpacity
+            key={opt.value}
+            style={[
+              styles.choicePill,
+              formData[field] === opt.value && styles.choicePillActive,
+            ]}
+            onPress={() => handleInputChange(field, opt.value)}
+          >
+            <Text
+              style={[
+                styles.choiceText,
+                formData[field] === opt.value && styles.choiceTextActive,
+              ]}
+            >
+              {opt.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
   if (!residentData) {
     return (
       <View style={styles.loadingContainer}>
@@ -169,6 +206,18 @@ const ProfileSettingsScreen = ({ navigation }) => {
           {renderField('first_name', 'First Name', true)}
           {renderField('last_name', 'Last Name', true)}
           {renderField('middle_name', 'Middle Name')}
+          {renderField('birth_date', 'Date of Birth')}
+          {renderChoiceRow('gender', 'Gender', [
+            { value: 'male', label: 'Male' },
+            { value: 'female', label: 'Female' },
+            { value: 'other', label: 'Other' },
+          ])}
+          {renderChoiceRow('marital_status', 'Civil Status', [
+            { value: 'single', label: 'Single' },
+            { value: 'married', label: 'Married' },
+            { value: 'widowed', label: 'Widowed' },
+            { value: 'divorced', label: 'Divorced' },
+          ])}
           {renderField('contact_number', 'Contact Number')}
           {renderField('occupation', 'Occupation')}
         </View>
@@ -176,13 +225,46 @@ const ProfileSettingsScreen = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Address Information</Text>
           {renderField('address', 'Address')}
+          {residentData?.purok_name || residentData?.household_number ? (
+            <View style={styles.readOnlyGroup}>
+              {residentData?.purok_name ? (
+                <View style={styles.readOnlyRow}>
+                  <Text style={styles.readOnlyLabel}>Purok</Text>
+                  <Text style={styles.readOnlyValue}>{residentData.purok_name}</Text>
+                </View>
+              ) : null}
+              {residentData?.household_number ? (
+                <View style={styles.readOnlyRow}>
+                  <Text style={styles.readOnlyLabel}>Household Number</Text>
+                  <Text style={styles.readOnlyValue}>{residentData.household_number}</Text>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Emergency Contact</Text>
           {renderField('emergency_contact_name', 'Emergency Contact Name')}
           {renderField('emergency_contact_number', 'Emergency Contact Number')}
-          {renderField('emergency_contact_relationship', 'Relationship')}
+          {renderField('emergency_contact_relationship', 'Contact Relationship')}
+          {renderChoiceRow('relationship_to_head', 'Relationship to Head', [
+            { value: 'head', label: 'Head' },
+            { value: 'spouse', label: 'Spouse' },
+            { value: 'child', label: 'Child' },
+            { value: 'parent', label: 'Parent' },
+            { value: 'sibling', label: 'Sibling' },
+            { value: 'other', label: 'Other' },
+          ])}
+          <View style={styles.toggleRow}>
+            <Text style={styles.label}>Voter Status</Text>
+            <TouchableOpacity
+              style={[styles.switchBox, formData.is_voter && styles.switchBoxOn]}
+              onPress={() => handleInputChange('is_voter', !formData.is_voter)}
+            >
+              <View style={[styles.switchKnob, formData.is_voter && styles.switchKnobOn]} />
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -333,6 +415,78 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#ffffff',
     color: '#374151',
+  },
+  choiceRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  choicePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  choicePillActive: {
+    backgroundColor: '#eef2ff',
+    borderColor: '#c7d2fe',
+  },
+  choiceText: {
+    color: '#374151',
+    fontWeight: '600',
+  },
+  choiceTextActive: {
+    color: '#4f46e5',
+  },
+  readOnlyGroup: {
+    marginTop: 8,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    padding: 12,
+  },
+  readOnlyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  readOnlyLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  readOnlyValue: {
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: '600',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  switchBox: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#e5e7eb',
+    padding: 3,
+  },
+  switchBoxOn: {
+    backgroundColor: '#4ade80',
+  },
+  switchKnob: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#ffffff',
+  },
+  switchKnobOn: {
+    marginLeft: 20,
   },
   footer: {
     padding: 24,

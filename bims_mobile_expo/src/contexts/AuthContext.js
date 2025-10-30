@@ -56,6 +56,9 @@ export const AuthProvider = ({ children }) => {
       
       if (response.access) {
         await AsyncStorage.setItem('userToken', response.access);
+        if (response.refresh) {
+          await AsyncStorage.setItem('refreshToken', response.refresh);
+        }
         await AsyncStorage.setItem('userData', JSON.stringify(response.user));
         setUser(response.user);
         
@@ -135,10 +138,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await authAPI.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
     } finally {
       await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('refreshToken');
       await AsyncStorage.removeItem('userData');
       await AsyncStorage.removeItem('onboardingCompleted');
       setUser(null);

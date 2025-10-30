@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
 import { residentsAPI } from '../services/api';
 
 const ProfileScreen = ({ navigation }) => {
@@ -24,13 +25,19 @@ const ProfileScreen = ({ navigation }) => {
     loadResidentData();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadResidentData();
+    }, [])
+  );
+
   const loadResidentData = async () => {
     try {
       if (user?.id) {
         const data = await residentsAPI.getResident(user.id);
         setResidentDetails(data);
         setProfileData({
-          contact_number: data.emergency_contact_number || user.contact_number || '',
+          contact_number: data.contact_number || user.contact_number || '',
           email: user.email || '',
         });
       }
@@ -69,12 +76,10 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Profile</Text>
           <TouchableOpacity 
-            style={styles.settingsButton}
+            style={styles.editProfileButton}
             onPress={() => navigation.navigate('ProfileSettings')}
           >
-            <View style={styles.settingsIcon}>
-              <View style={styles.settingsGear} />
-            </View>
+            <Text style={styles.editProfileText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -128,7 +133,7 @@ const ProfileScreen = ({ navigation }) => {
 
             <View style={styles.infoItem}>
               <Text style={styles.label}>Civil Status</Text>
-              <Text style={styles.value}>{residentDetails?.civil_status || 'N/A'}</Text>
+              <Text style={styles.value}>{residentDetails?.marital_status ? residentDetails.marital_status.charAt(0).toUpperCase() + residentDetails.marital_status.slice(1) : 'N/A'}</Text>
             </View>
           </View>
         </View>
@@ -169,7 +174,7 @@ const ProfileScreen = ({ navigation }) => {
             <View style={styles.card}>
               <View style={styles.infoItem}>
                 <Text style={styles.label}>Contact Number</Text>
-                <Text style={styles.value}>{profileData.contact_number || 'Not provided'}</Text>
+                <Text style={styles.value}>{residentDetails?.contact_number || 'Not provided'}</Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.infoItem}>
@@ -186,7 +191,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.card}>
             <View style={styles.infoItem}>
               <Text style={styles.label}>Street Address</Text>
-              <Text style={styles.value}>{residentDetails?.household?.address || 'Not provided'}</Text>
+              <Text style={styles.value}>{residentDetails?.address || 'Not provided'}</Text>
             </View>
             <View style={styles.divider} />
             
@@ -317,32 +322,16 @@ const styles = StyleSheet.create({
     color: '#111827',
     letterSpacing: 0.3,
   },
-  settingsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  editProfileButton: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
-  settingsIcon: {
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  settingsGear: {
-    width: 16,
-    height: 16,
-    borderWidth: 2,
-    borderColor: '#374151',
-    borderRadius: 8,
-    position: 'relative',
+  editProfileText: {
+    color: '#4F46E5',
+    fontSize: 13,
+    fontWeight: '700',
   },
   actionButton: {
     backgroundColor: '#3B82F6',

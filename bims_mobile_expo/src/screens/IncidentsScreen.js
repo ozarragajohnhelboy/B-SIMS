@@ -281,9 +281,11 @@ const IncidentsScreen = ({ navigation }) => {
               )}
 
               {incident.response && (
-                <View style={styles.responseCard}>
-                  <Text style={styles.responseLabel}>Barangay Response:</Text>
-                  <Text style={styles.responseText}>{incident.response}</Text>
+                <View style={styles.responseContainer}>
+                  <View style={styles.responseHeader}> 
+                    <Text style={styles.responseHeaderText}>Barangay Response</Text>
+                  </View>
+                  <Text style={styles.responseBodyText}>{incident.response}</Text>
                 </View>
               )}
               <Text style={styles.dateText}>{new Date(incident.created_at).toLocaleDateString()}</Text>
@@ -448,9 +450,10 @@ const styles = StyleSheet.create({
   locationContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', padding: 8, borderRadius: 8, marginBottom: 12 },
   locationIcon: { width: 16, height: 16, borderRadius: 8, backgroundColor: '#EF4444', marginRight: 8 },
   locationText: { flex: 1, fontSize: 12, color: '#6B7280' },
-  responseCard: { backgroundColor: '#EFF6FF', padding: 12, borderRadius: 8, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: '#3B82F6' },
-  responseLabel: { fontSize: 12, fontWeight: '600', color: '#1E40AF', marginBottom: 4 },
-  responseText: { fontSize: 13, color: '#1E3A8A' },
+  responseContainer: { backgroundColor: '#F8FAFF', borderWidth: 1, borderColor: '#C7D2FE', borderRadius: 12, padding: 12, marginBottom: 12, overflow: 'hidden' },
+  responseHeader: { backgroundColor: '#EEF2FF', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, alignSelf: 'flex-start', marginBottom: 8 },
+  responseHeaderText: { fontSize: 12, fontWeight: '700', color: '#4338CA' },
+  responseBodyText: { fontSize: 14, color: '#1E3A8A', lineHeight: 20 },
   dateText: { fontSize: 12, color: '#9CA3AF' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
   modalContainer: { backgroundColor: 'white', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' },

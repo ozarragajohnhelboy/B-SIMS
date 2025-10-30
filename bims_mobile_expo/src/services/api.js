@@ -51,8 +51,16 @@ export const authAPI = {
   },
 
   logout: async () => {
-    const response = await api.post('/auth/logout/');
-    return response.data;
+    const refresh = await AsyncStorage.getItem('refreshToken');
+    if (!refresh) {
+      return { status: 'skipped' };
+    }
+    try {
+      const response = await api.post('/auth/logout/', { refresh });
+      return response.data;
+    } catch (e) {
+      return { status: 'error' };
+    }
   },
 
   changePassword: async (passwordData) => {

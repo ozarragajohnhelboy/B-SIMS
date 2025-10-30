@@ -74,6 +74,8 @@ class Resident(models.Model):
     marital_status = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES)
     occupation = models.CharField(max_length=100, blank=True)
     monthly_income = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    contact_number = models.CharField(max_length=15, blank=True)
+    address = models.TextField(blank=True)
     household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='residents', null=True, blank=True)
     relationship_to_head = models.CharField(max_length=20, choices=RELATIONSHIP_CHOICES, default='head')
     emergency_contact_name = models.CharField(max_length=100, blank=True)
