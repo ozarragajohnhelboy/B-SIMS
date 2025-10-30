@@ -16,6 +16,8 @@ const IncidentsManagement = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replyStatus, setReplyStatus] = useState('acknowledged');
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [mapCoords, setMapCoords] = useState(null);
 
   const showAlert = (type, message) => {
     setAlert({ show: true, type, message });
@@ -404,14 +406,15 @@ const IncidentsManagement = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
                   <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900">
                     {selectedComplaint.location_address || `${selectedComplaint.latitude}, ${selectedComplaint.longitude}`}
-                    <a
-                      href={`https://www.google.com/maps?q=${selectedComplaint.latitude},${selectedComplaint.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-2 text-blue-600 hover:text-blue-800 text-sm"
+                    <button
+                      onClick={() => {
+                        setMapCoords({ lat: selectedComplaint.latitude, lng: selectedComplaint.longitude });
+                        setShowMapModal(true);
+                      }}
+                      className="ml-2 text-blue-600 hover:text-blue-800 text-sm underline"
                     >
                       View on Map
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}
@@ -464,6 +467,43 @@ const IncidentsManagement = () => {
                   Reply
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showMapModal && mapCoords && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-3xl shadow-2xl rounded-xl bg-white">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Incident Location</h3>
+              <button
+                onClick={() => { setShowMapModal(false); setMapCoords(null); }}
+                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="rounded-lg overflow-hidden border border-gray-200">
+              <iframe
+                title="Incident Location Map"
+                src={`https://maps.google.com/maps?q=${mapCoords.lat},${mapCoords.lng}&z=16&output=embed`}
+                width="100%"
+                height="420"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <div className="mt-4 text-sm text-gray-600">
+              <span>{mapCoords.lat}, {mapCoords.lng}</span>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => { setShowMapModal(false); setMapCoords(null); }}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

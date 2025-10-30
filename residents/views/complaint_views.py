@@ -94,7 +94,7 @@ class MobileComplaintListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         resident = Resident.objects.get(user=self.request.user)
-        complaint = serializer.save(submitted_by=resident, status='pending')
+        complaint = serializer.save(submitted_by=resident, status='received')
         
         if hasattr(self.request, 'FILES'):
             images = self.request.FILES.getlist('images')

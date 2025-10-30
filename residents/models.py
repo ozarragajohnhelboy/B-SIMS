@@ -244,25 +244,44 @@ class Blotter(models.Model):
 
 class Complaint(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
+        ('received', 'Received'),
         ('acknowledged', 'Acknowledged'),
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
         ('closed', 'Closed'),
     ]
     
+    INCIDENT_TYPE_CHOICES = [
+        ('disturbance', 'Disturbance'),
+        ('missing_item', 'Missing Item'),
+        ('accident', 'Accident'),
+        ('property_damage', 'Property Damage'),
+        ('noise_complaint', 'Noise Complaint'),
+        ('health_concern', 'Health Concern'),
+        ('sanitation', 'Sanitation Issue'),
+        ('streetlight', 'Streetlight/Infrastructure'),
+        ('stray_animals', 'Stray Animals'),
+        ('other', 'Other'),
+    ]
+    
     title = models.CharField(max_length=200)
+    incident_type = models.CharField(max_length=50, choices=INCIDENT_TYPE_CHOICES, default='other')
     details = models.TextField()
     submitted_by = models.ForeignKey(Resident, on_delete=models.CASCADE, related_name='complaints')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='received')
     response = models.TextField(blank=True)
     responded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='responded_complaints')
     responded_at = models.DateTimeField(null=True, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    location_address = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['-created_at']
+        verbose_name = 'Incident/Complaint'
+        verbose_name_plural = 'Incidents/Complaints'
     
     def __str__(self):
         return f"{self.title} - {self.submitted_by.full_name}"

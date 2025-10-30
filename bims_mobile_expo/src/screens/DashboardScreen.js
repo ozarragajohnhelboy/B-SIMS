@@ -204,7 +204,7 @@ const DashboardScreen = ({ navigation }) => {
                   <View style={styles.complaintsIconCircle} />
                 </View>
               </View>
-              <Text style={styles.serviceTitle}>Complaints</Text>
+              <Text style={styles.serviceTitle}>Incidents</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7} onPress={() => navigation.navigate('DocumentRequests')}>
