@@ -10,6 +10,8 @@ import {
   Alert,
   Modal,
   Platform,
+  Animated,
+  Easing,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
@@ -257,19 +259,7 @@ const IncidentsScreen = ({ navigation }) => {
                 </View>
               </View>
 
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${getStatusProgress(incident.status)}%` }]} />
-                </View>
-                <View style={styles.progressSteps}>
-                  {statusSteps.map((step, index) => (
-                    <View key={step} style={[
-                      styles.progressStep,
-                      statusSteps.indexOf(incident.status) >= index && styles.progressStepActive
-                    ]} />
-                  ))}
-                </View>
-              </View>
+              <RunnerProgress percent={getStatusProgress(incident.status)} />
 
               <Text style={styles.incidentDetails} numberOfLines={3}>{incident.details}</Text>
               
@@ -418,6 +408,66 @@ const IncidentsScreen = ({ navigation }) => {
   );
 };
 
+const RunnerProgress = ({ percent }) => {
+  const [trackWidth, setTrackWidth] = useState(0);
+  const legAnim = React.useRef(new Animated.Value(0)).current;
+  const clampedPercent = Math.max(0, Math.min(100, percent || 0));
+
+  useEffect(() => {
+    if (trackWidth <= 0) return;
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(legAnim, { toValue: 1, duration: 300, easing: Easing.linear, useNativeDriver: true }),
+        Animated.timing(legAnim, { toValue: 0, duration: 300, easing: Easing.linear, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [trackWidth, clampedPercent]);
+
+  return (
+    <View style={styles.progressContainer}>
+      <View style={styles.progressBar} onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}>
+        <View style={[styles.progressFill, { width: `${clampedPercent}%` }]} />
+        {trackWidth > 0 && clampedPercent > 0 && (
+          <Animated.View style={[
+            styles.runnerContainer,
+            { left: Math.max(0, (clampedPercent / 100) * trackWidth - 12) }
+          ]}>
+            <BarangayRunner legAnim={legAnim} />
+          </Animated.View>
+        )}
+      </View>
+      <View style={styles.progressSteps}>
+        {[0, 1, 2, 3].map((idx) => (
+          <View
+            key={idx}
+            style={[styles.progressStep, (clampedPercent / 100) * 3 >= idx && styles.progressStepActive]}
+          />
+        ))}
+      </View>
+    </View>
+  );
+};
+
+const BarangayRunner = ({ legAnim }) => {
+  const leftLegRotate = legAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-25deg', '15deg', '-25deg'] });
+  const rightLegRotate = legAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['15deg', '-25deg', '15deg'] });
+  const leftLegY = legAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, -2, 0] });
+  const rightLegY = legAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [-2, 0, -2] });
+  const leftArmRotate = legAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['30deg', '-20deg', '30deg'] });
+  const rightArmRotate = legAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-20deg', '30deg', '-20deg'] });
+
+  return (
+    <View style={styles.runnerFigure}>
+      <View style={styles.runnerHead} />
+      <View style={styles.runnerBody} />
+      <Animated.View style={[styles.runnerLeftArm, { transform: [{ rotate: leftArmRotate }] }]} />
+      <Animated.View style={[styles.runnerRightArm, { transform: [{ rotate: rightArmRotate }] }]} />
+      <Animated.View style={[styles.runnerLeftLeg, { transform: [{ rotate: leftLegRotate }, { translateY: leftLegY }] }]} />
+      <Animated.View style={[styles.runnerRightLeg, { transform: [{ rotate: rightLegRotate }, { translateY: rightLegY }] }]} />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   headerContainer: { backgroundColor: 'white', paddingTop: 60, paddingBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
@@ -441,8 +491,9 @@ const styles = StyleSheet.create({
   statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, marginLeft: 8 },
   statusText: { fontSize: 11, fontWeight: '700' },
   progressContainer: { marginBottom: 12 },
-  progressBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, overflow: 'hidden', marginBottom: 8 },
+  progressBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, overflow: 'visible', marginBottom: 16 },
   progressFill: { height: '100%', backgroundColor: '#3B82F6', borderRadius: 3 },
+  runnerContainer: { position: 'absolute', top: -16, left: 0 },
   progressSteps: { flexDirection: 'row', justifyContent: 'space-between' },
   progressStep: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5E7EB' },
   progressStepActive: { backgroundColor: '#3B82F6' },
@@ -489,6 +540,13 @@ const styles = StyleSheet.create({
   submitButton: { flex: 1, backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
   submitButtonDisabled: { opacity: 0.5 },
   submitButtonText: { fontSize: 16, fontWeight: '600', color: 'white' },
+  runnerFigure: { width: 24, height: 28, position: 'relative', alignItems: 'center' },
+  runnerHead: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#F59E0B', position: 'absolute', top: 0, left: 7 },
+  runnerBody: { width: 12, height: 10, borderRadius: 2, backgroundColor: '#3B82F6', position: 'absolute', top: 8, left: 6 },
+  runnerLeftArm: { width: 3, height: 8, borderRadius: 1.5, backgroundColor: '#F59E0B', position: 'absolute', top: 10, left: 3 },
+  runnerRightArm: { width: 3, height: 8, borderRadius: 1.5, backgroundColor: '#F59E0B', position: 'absolute', top: 10, left: 18 },
+  runnerLeftLeg: { width: 4, height: 10, borderRadius: 2, backgroundColor: '#1E40AF', position: 'absolute', top: 18, left: 6 },
+  runnerRightLeg: { width: 4, height: 10, borderRadius: 2, backgroundColor: '#1E40AF', position: 'absolute', top: 18, left: 14 },
 });
 
 export default IncidentsScreen;

@@ -297,10 +297,10 @@ const AnnouncementManagement = () => {
                               <div className="text-sm font-medium text-gray-900 flex items-center">
                                 {announcement.title}
                                 {announcement.is_pinned && (
-                                  <span className="ml-2 text-yellow-500">📌</span>
+                                  <span className="ml-2 text-yellow-500"></span>
                                 )}
                                 {announcement.is_featured && (
-                                  <span className="ml-2 text-blue-500">⭐</span>
+                                  <span className="ml-2 text-blue-500"></span>
                                 )}
                               </div>
                             </div>
