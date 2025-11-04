@@ -16,6 +16,8 @@ urlpatterns = [
     path('<int:pk>/', project_views.ProjectDetailView.as_view(), name='project-detail'),
     path('stats/', project_views.project_stats_view, name='project-stats'),
     path('progress/', project_views.project_progress_view, name='project-progress'),
+    path('mobile/', project_views.MobileProjectListView.as_view(), name='mobile-project-list'),
+    path('mobile/stats/', project_views.mobile_project_stats_view, name='mobile-project-stats'),
     
     path('photos/', media_views.ProjectPhotoListView.as_view(), name='project-photo-list'),
     path('photos/<int:pk>/', media_views.ProjectPhotoDetailView.as_view(), name='project-photo-detail'),

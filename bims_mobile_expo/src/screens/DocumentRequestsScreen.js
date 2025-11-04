@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, TextInput } from 'react-native';
 import { documentsAPI } from '../services/api';
 import PaymentSelectionScreen from './PaymentSelectionScreen';
 
@@ -15,6 +15,9 @@ const DocumentRequestsScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => { load(); }, []);
 
@@ -47,6 +50,22 @@ const DocumentRequestsScreen = ({ navigation }) => {
       paymentMethod: method,
     });
   };
+
+  const filteredItems = items.filter(item => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      item.document_type?.name?.toLowerCase().includes(search) ||
+      item.purpose?.toLowerCase().includes(search) ||
+      item.request_number?.toLowerCase().includes(search) ||
+      item.status?.toLowerCase().includes(search)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedItems = filteredItems.slice(startIndex, endIndex);
 
   const renderItem = ({ item }) => {
     const stylesFor = statusStyles[item.status] || statusStyles.pending;
@@ -93,12 +112,55 @@ const DocumentRequestsScreen = ({ navigation }) => {
         </View>
       </View>
 
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search documents..."
+          placeholderTextColor="#9CA3AF"
+          value={searchTerm}
+          onChangeText={(text) => {
+            setSearchTerm(text);
+            setCurrentPage(1);
+          }}
+        />
+      </View>
+
       <FlatList
-        data={items}
+        data={paginatedItems}
         keyExtractor={(it) => String(it.id)}
         renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, paginatedItems.length === 0 && { flex: 1, justifyContent: 'center' }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {searchTerm ? 'No documents found matching your search' : 'No document requests yet'}
+            </Text>
+          </View>
+        }
+        ListFooterComponent={
+          totalPages > 1 ? (
+            <View style={styles.paginationContainer}>
+              <TouchableOpacity
+                style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
+                onPress={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+              >
+                <Text style={[styles.paginationButtonText, currentPage === 1 && styles.paginationButtonTextDisabled]}>Previous</Text>
+              </TouchableOpacity>
+              <Text style={styles.paginationInfo}>
+                Page {currentPage} of {totalPages}
+              </Text>
+              <TouchableOpacity
+                style={[styles.paginationButton, currentPage === totalPages && styles.paginationButtonDisabled]}
+                onPress={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <Text style={[styles.paginationButtonText, currentPage === totalPages && styles.paginationButtonTextDisabled]}>Next</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
+        }
       />
 
       <PaymentSelectionScreen
@@ -122,6 +184,16 @@ const styles = StyleSheet.create({
   primaryBtn: { backgroundColor: '#3B82F6', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
   primaryBtnText: { color: 'white', fontWeight: '700' },
   listContent: { padding: 16 },
+  searchContainer: { padding: 16, paddingBottom: 0, backgroundColor: 'white' },
+  searchInput: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827' },
+  paginationContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#E5E7EB' },
+  paginationButton: { paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#3B82F6', borderRadius: 8 },
+  paginationButtonDisabled: { backgroundColor: '#E5E7EB' },
+  paginationButtonText: { color: 'white', fontWeight: '600', fontSize: 14 },
+  paginationButtonTextDisabled: { color: '#9CA3AF' },
+  paginationInfo: { fontSize: 14, color: '#6B7280', fontWeight: '600' },
+  emptyContainer: { padding: 40, alignItems: 'center' },
+  emptyText: { fontSize: 14, color: '#6B7280', textAlign: 'center' },
   card: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
   clickableCard: { borderWidth: 2, borderColor: '#3B82F6' },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

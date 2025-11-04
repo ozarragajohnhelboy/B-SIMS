@@ -174,6 +174,7 @@ export const projectsAPI = {
   getProject: (id) => api.get(`/projects/${id}/`),
   createProject: (data) => api.post('/projects/', data),
   updateProject: (id, data) => api.put(`/projects/${id}/`, data),
+  patchProject: (id, data) => api.patch(`/projects/${id}/`, data),
   deleteProject: (id) => api.delete(`/projects/${id}/`),
   getProjectStats: () => api.get('/projects/stats/'),
   getProjectProgress: () => api.get('/projects/progress/'),

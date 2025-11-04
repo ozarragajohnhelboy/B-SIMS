@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, LayoutAnimation, Platform, UIManager, TextInput } from 'react-native';
 import { announcementsAPI } from '../services/api';
 
 const AnnouncementsScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -36,6 +39,22 @@ const AnnouncementsScreen = ({ navigation }) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedId(prev => (prev === id ? null : id));
   };
+
+  const filteredItems = items.filter(item => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      item.title?.toLowerCase().includes(search) ||
+      item.content?.toLowerCase().includes(search) ||
+      item.category?.name?.toLowerCase().includes(search) ||
+      item.status?.toLowerCase().includes(search)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedItems = filteredItems.slice(startIndex, endIndex);
 
   const getStatusStyles = (status) => {
     const key = (status || '').toLowerCase();
@@ -86,16 +105,59 @@ const AnnouncementsScreen = ({ navigation }) => {
             </View>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Announcements</Text>
-          <View style={styles.countBadge}><Text style={styles.countText}>{items.length}</Text></View>
+          <View style={styles.countBadge}><Text style={styles.countText}>{filteredItems.length}</Text></View>
         </View>
       </View>
 
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search announcements..."
+          placeholderTextColor="#9CA3AF"
+          value={searchTerm}
+          onChangeText={(text) => {
+            setSearchTerm(text);
+            setCurrentPage(1);
+          }}
+        />
+      </View>
+
       <FlatList
-        data={items}
+        data={paginatedItems}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {searchTerm ? 'No announcements found matching your search' : 'No announcements available'}
+            </Text>
+          </View>
+        }
+        ListFooterComponent={
+          totalPages > 1 ? (
+            <View style={styles.paginationContainer}>
+              <TouchableOpacity
+                style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
+                onPress={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+              >
+                <Text style={[styles.paginationButtonText, currentPage === 1 && styles.paginationButtonTextDisabled]}>Previous</Text>
+              </TouchableOpacity>
+              <Text style={styles.paginationInfo}>
+                Page {currentPage} of {totalPages}
+              </Text>
+              <TouchableOpacity
+                style={[styles.paginationButton, currentPage === totalPages && styles.paginationButtonDisabled]}
+                onPress={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <Text style={[styles.paginationButtonText, currentPage === totalPages && styles.paginationButtonTextDisabled]}>Next</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
+        }
       />
     </View>
   );
@@ -111,7 +173,17 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#111827', letterSpacing: 0.3 },
   countBadge: { minWidth: 28, height: 24, paddingHorizontal: 6, borderRadius: 12, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' },
   countText: { color: '#6366F1', fontWeight: '700' },
+  searchContainer: { padding: 16, paddingBottom: 0, backgroundColor: 'white' },
+  searchInput: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827' },
   listContent: { padding: 16 },
+  paginationContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#E5E7EB' },
+  paginationButton: { paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#3B82F6', borderRadius: 8 },
+  paginationButtonDisabled: { backgroundColor: '#E5E7EB' },
+  paginationButtonText: { color: 'white', fontWeight: '600', fontSize: 14 },
+  paginationButtonTextDisabled: { color: '#9CA3AF' },
+  paginationInfo: { fontSize: 14, color: '#6B7280', fontWeight: '600' },
+  emptyContainer: { padding: 40, alignItems: 'center' },
+  emptyText: { fontSize: 14, color: '#6B7280', textAlign: 'center' },
   card: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 6 },

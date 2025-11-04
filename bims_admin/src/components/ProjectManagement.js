@@ -36,6 +36,8 @@ const ProjectManagement = () => {
     location: '',
     is_public: true
   });
+  const [showProjectEdit, setShowProjectEdit] = useState(false);
+  const [editProjectData, setEditProjectData] = useState(null);
   const [eventFormData, setEventFormData] = useState({
     title: '',
     description: '',
@@ -495,6 +497,7 @@ const ProjectManagement = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeline</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -512,9 +515,26 @@ const ProjectManagement = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(project.status)}`}>
-                            {project.status}
-                          </span>
+                          <select
+                            value={project.status}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                await projectsAPI.patchProject(project.id, { status: newStatus });
+                                fetchData();
+                              } catch (err) {
+                                console.error('Failed to update status', err);
+                              }
+                            }}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 ${getStatusColor(project.status)} border border-transparent hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-400`}
+                            style={{ WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none' }}
+                          >
+                            <option value="planning">Planning</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="on_hold">On Hold</option>
+                          </select>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -529,6 +549,28 @@ const ProjectManagement = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {new Date(project.start_date).toLocaleDateString()} - {new Date(project.end_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => { setEditProjectData(project); setShowProjectEdit(true); }}
+                            className="text-blue-600 hover:text-blue-900 mr-4"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm('Delete this project?')) return;
+                              try {
+                                await projectsAPI.deleteProject(project.id);
+                                fetchData();
+                              } catch (err) {
+                                console.error('Failed to delete project', err);
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -567,6 +609,159 @@ const ProjectManagement = () => {
                   >
                     Next
                   </button>
+                </div>
+              )}
+              {showProjectEdit && editProjectData && (
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                  <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div className="fixed inset-0 transition-opacity" onClick={() => setShowProjectEdit(false)}>
+                      <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                    </div>
+                    <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                      <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div className="sm:flex sm:items-start">
+                          <div className="w-full">
+                            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Edit Project</h3>
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                  <input
+                                    type="text"
+                                    value={editProjectData.title || ''}
+                                    onChange={(e) => setEditProjectData({ ...editProjectData, title: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                  <select
+                                    value={editProjectData.status}
+                                    onChange={(e) => setEditProjectData({ ...editProjectData, status: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="planning">Planning</option>
+                                    <option value="ongoing">Ongoing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                    <option value="on_hold">On Hold</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea
+                                  value={editProjectData.description || ''}
+                                  onChange={(e) => setEditProjectData({ ...editProjectData, description: e.target.value })}
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  rows="3"
+                                />
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                  <select
+                                    value={editProjectData.priority}
+                                    onChange={(e) => setEditProjectData({ ...editProjectData, priority: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={editProjectData.budget_allocated}
+                                    onChange={(e) => setEditProjectData({ ...editProjectData, budget_allocated: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Public</label>
+                                  <select
+                                    value={editProjectData.is_public ? 'true' : 'false'}
+                                    onChange={(e) => setEditProjectData({ ...editProjectData, is_public: e.target.value === 'true' })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                  <input
+                                    type="date"
+                                    value={editProjectData.start_date?.slice(0,10) || ''}
+                                    onChange={(e) => setEditProjectData({ ...editProjectData, start_date: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                  <input
+                                    type="date"
+                                    value={editProjectData.end_date?.slice(0,10) || ''}
+                                    onChange={(e) => setEditProjectData({ ...editProjectData, end_date: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                <input
+                                  type="text"
+                                  value={editProjectData.location || ''}
+                                  onChange={(e) => setEditProjectData({ ...editProjectData, location: e.target.value })}
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const payload = {
+                                title: editProjectData.title,
+                                description: editProjectData.description,
+                                status: editProjectData.status,
+                                priority: editProjectData.priority,
+                                budget_allocated: editProjectData.budget_allocated,
+                                start_date: editProjectData.start_date,
+                                end_date: editProjectData.end_date,
+                                location: editProjectData.location,
+                                is_public: editProjectData.is_public,
+                              };
+                              await projectsAPI.patchProject(editProjectData.id, payload);
+                              setShowProjectEdit(false);
+                              setEditProjectData(null);
+                              fetchData();
+                            } catch (err) {
+                              console.error('Failed to update project', err);
+                            }
+                          }}
+                          className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                        >
+                          Save Changes
+                        </button>
+                        <button
+                          onClick={() => { setShowProjectEdit(false); setEditProjectData(null); }}
+                          className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

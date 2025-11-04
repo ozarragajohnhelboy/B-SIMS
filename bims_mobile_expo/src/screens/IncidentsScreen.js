@@ -27,6 +27,9 @@ const IncidentsScreen = ({ navigation }) => {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const incidentTypes = [
     { value: 'disturbance', label: 'Disturbance' },
@@ -203,6 +206,21 @@ const IncidentsScreen = ({ navigation }) => {
     }
   };
 
+  const filteredIncidents = incidents.filter(incident => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      incident.title?.toLowerCase().includes(search) ||
+      incident.details?.toLowerCase().includes(search) ||
+      incidentTypes.find(t => t.value === incident.incident_type)?.label.toLowerCase().includes(search)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredIncidents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedIncidents = filteredIncidents.slice(startIndex, endIndex);
+
   const getStatusProgress = (status) => {
     const index = statusSteps.indexOf(status);
     return index >= 0 ? ((index + 1) / statusSteps.length) * 100 : 0;
@@ -235,17 +253,35 @@ const IncidentsScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {incidents.length === 0 ? (
+      <View style={styles.content}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search incidents..."
+            placeholderTextColor="#9CA3AF"
+            value={searchTerm}
+            onChangeText={(text) => {
+              setSearchTerm(text);
+              setCurrentPage(1);
+            }}
+          />
+        </View>
+
+        <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {filteredIncidents.length === 0 ? (
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIcon}>
               <View style={styles.incidentIcon} />
             </View>
-            <Text style={styles.emptyTitle}>No Incidents Reported</Text>
-            <Text style={styles.emptyText}>Report your first incident</Text>
+            <Text style={styles.emptyTitle}>
+              {searchTerm ? 'No results found' : 'No Incidents Reported'}
+            </Text>
+            <Text style={styles.emptyText}>
+              {searchTerm ? 'Try different search terms' : 'Report your first incident'}
+            </Text>
           </View>
         ) : (
-          incidents.map((incident) => (
+          paginatedIncidents.map((incident) => (
             <View key={incident.id} style={styles.incidentCard}>
               <View style={styles.incidentHeader}>
                 <View style={{ flex: 1 }}>
@@ -282,7 +318,30 @@ const IncidentsScreen = ({ navigation }) => {
             </View>
           ))
         )}
-      </ScrollView>
+
+        {totalPages > 1 && (
+          <View style={styles.paginationContainer}>
+            <TouchableOpacity
+              style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
+              onPress={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+            >
+              <Text style={[styles.paginationButtonText, currentPage === 1 && styles.paginationButtonTextDisabled]}>Previous</Text>
+            </TouchableOpacity>
+            <Text style={styles.paginationInfo}>
+              Page {currentPage} of {totalPages}
+            </Text>
+            <TouchableOpacity
+              style={[styles.paginationButton, currentPage === totalPages && styles.paginationButtonDisabled]}
+              onPress={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <Text style={[styles.paginationButtonText, currentPage === totalPages && styles.paginationButtonTextDisabled]}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        </ScrollView>
+      </View>
 
       <Modal visible={showForm} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
@@ -308,36 +367,40 @@ const IncidentsScreen = ({ navigation }) => {
 
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Incident Type *</Text>
-                <TouchableOpacity
-                  style={styles.dropdownButton}
-                  onPress={() => setShowTypeDropdown(!showTypeDropdown)}
-                >
-                  <Text style={styles.dropdownText}>
-                    {incidentTypes.find(t => t.value === incidentType)?.label}
-                  </Text>
-                  <Text style={styles.dropdownArrow}>▼</Text>
-                </TouchableOpacity>
-                {showTypeDropdown && (
-                  <View style={styles.dropdownList}>
-                    {incidentTypes.map((type) => (
-                      <TouchableOpacity
-                        key={type.value}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setIncidentType(type.value);
-                          setShowTypeDropdown(false);
-                        }}
-                      >
-                        <Text style={[
-                          styles.dropdownItemText,
-                          incidentType === type.value && styles.dropdownItemSelected
-                        ]}>
-                          {type.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                <View style={styles.dropdownWrapper}>
+                  <TouchableOpacity
+                    style={styles.dropdownButton}
+                    onPress={() => setShowTypeDropdown(!showTypeDropdown)}
+                  >
+                    <Text style={styles.dropdownText}>
+                      {incidentTypes.find(t => t.value === incidentType)?.label}
+                    </Text>
+                    <Text style={styles.dropdownArrow}>▼</Text>
+                  </TouchableOpacity>
+                  {showTypeDropdown && (
+                    <View style={styles.dropdownList}>
+                      <ScrollView style={styles.dropdownScrollView} nestedScrollEnabled={true}>
+                        {incidentTypes.map((type) => (
+                          <TouchableOpacity
+                            key={type.value}
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                              setIncidentType(type.value);
+                              setShowTypeDropdown(false);
+                            }}
+                          >
+                            <Text style={[
+                              styles.dropdownItemText,
+                              incidentType === type.value && styles.dropdownItemSelected
+                            ]}>
+                              {type.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
               </View>
 
               <View style={styles.inputContainer}>
@@ -478,7 +541,10 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 20, fontWeight: '700', color: '#111827', letterSpacing: 0.3 },
   addButton: { backgroundColor: '#EF4444', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
   addButtonText: { color: 'white', fontWeight: '700' },
-  content: { flex: 1, padding: 16 },
+  content: { flex: 1 },
+  scrollContent: { flex: 1, padding: 16 },
+  searchContainer: { padding: 16, paddingBottom: 0, backgroundColor: 'white' },
+  searchInput: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827' },
   emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingTop: 100 },
   emptyIcon: { width: 80, height: 80, backgroundColor: '#FEE2E2', borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   incidentIcon: { width: 60, height: 60, borderWidth: 3, borderColor: '#EF4444', borderRadius: 30 },
@@ -516,10 +582,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
   input: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827' },
   textArea: { height: 120, textAlignVertical: 'top' },
-  dropdownButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14 },
-  dropdownText: { fontSize: 15, color: '#111827', fontWeight: '500' },
-  dropdownArrow: { fontSize: 10, color: '#6B7280' },
-  dropdownList: { marginTop: 8, backgroundColor: 'white', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', maxHeight: 200 },
+  dropdownWrapper: { position: 'relative' },
+  dropdownButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, width: '100%' },
+  dropdownText: { fontSize: 15, color: '#111827', fontWeight: '500', flex: 1 },
+  dropdownArrow: { fontSize: 10, color: '#6B7280', marginLeft: 8 },
+  dropdownList: { position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, backgroundColor: 'white', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', zIndex: 1000, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 5, overflow: 'hidden' },
+  dropdownScrollView: { maxHeight: 192 },
   dropdownItem: { padding: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   dropdownItemText: { fontSize: 15, color: '#374151' },
   dropdownItemSelected: { color: '#3B82F6', fontWeight: '600' },
@@ -547,6 +615,12 @@ const styles = StyleSheet.create({
   runnerRightArm: { width: 3, height: 8, borderRadius: 1.5, backgroundColor: '#F59E0B', position: 'absolute', top: 10, left: 18 },
   runnerLeftLeg: { width: 4, height: 10, borderRadius: 2, backgroundColor: '#1E40AF', position: 'absolute', top: 18, left: 6 },
   runnerRightLeg: { width: 4, height: 10, borderRadius: 2, backgroundColor: '#1E40AF', position: 'absolute', top: 18, left: 14 },
+  paginationContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#E5E7EB' },
+  paginationButton: { paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#3B82F6', borderRadius: 8 },
+  paginationButtonDisabled: { backgroundColor: '#E5E7EB' },
+  paginationButtonText: { color: 'white', fontWeight: '600', fontSize: 14 },
+  paginationButtonTextDisabled: { color: '#9CA3AF' },
+  paginationInfo: { fontSize: 14, color: '#6B7280', fontWeight: '600' },
 });
 
 export default IncidentsScreen;

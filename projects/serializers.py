@@ -78,3 +78,14 @@ class CommunityEventCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityEvent
         fields = '__all__'
+        extra_kwargs = {
+            'organizer': { 'required': False },
+            'created_by': { 'required': False },
+        }
+
+    def validate(self, attrs):
+        start = attrs.get('start_datetime')
+        end = attrs.get('end_datetime')
+        if start and end and end < start:
+            raise serializers.ValidationError('end_datetime must be after start_datetime')
+        return attrs

@@ -97,3 +97,30 @@ def project_progress_view(request):
     projects = Project.objects.filter(status__in=['ongoing', 'planning']).order_by('-progress_percentage')
     serializer = ProjectSerializer(projects, many=True)
     return Response(serializer.data)
+
+
+class MobileProjectListView(generics.ListAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return Project.objects.select_related('project_type', 'project_manager', 'created_by').filter(
+            is_public=True
+        ).order_by('-created_at')
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def mobile_project_stats_view(request):
+    public_projects = Project.objects.filter(is_public=True)
+    total_projects = public_projects.count()
+    ongoing_projects = public_projects.filter(status='ongoing').count()
+    completed_projects = public_projects.filter(status='completed').count()
+    total_budget = public_projects.aggregate(total=models.Sum('budget_allocated'))['total'] or 0
+    
+    return Response({
+        'total_projects': total_projects,
+        'ongoing_projects': ongoing_projects,
+        'completed_projects': completed_projects,
+        'total_budget': float(total_budget),
+    })

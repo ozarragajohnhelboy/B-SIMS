@@ -203,17 +203,22 @@ export const complaintsAPI = {
 
 export const projectsAPI = {
   getProjects: async () => {
-    const response = await api.get('/projects/');
+    const response = await api.get('/projects/mobile/');
+    return response.data;
+  },
+
+  getProjectStats: async () => {
+    const response = await api.get('/projects/mobile/stats/');
     return response.data;
   },
 
   getEvents: async () => {
-    const response = await api.get('/projects/events/');
+    const response = await api.get('/projects/events/', { params: { is_public: true } });
     return response.data;
   },
 
   getUpcomingEvents: async () => {
-    const response = await api.get('/projects/events/?upcoming=true');
+    const response = await api.get('/projects/events/upcoming/');
     return response.data;
   },
 };

@@ -20,6 +20,7 @@ const DashboardScreen = ({ navigation }) => {
     activeRequests: 0,
     announcements: 0,
     upcomingEvents: 0,
+    totalProjects: 0,
   });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -29,11 +30,12 @@ const DashboardScreen = ({ navigation }) => {
 
   const loadDashboardData = async () => {
     try {
-      const [documentsRes, announcementsRes, eventsRes, announcementStatsRes] = await Promise.allSettled([
+      const [documentsRes, announcementsRes, eventsRes, announcementStatsRes, projectsStatsRes] = await Promise.allSettled([
         documentsAPI.getMyRequests(),
         announcementsAPI.getAnnouncements(),
         projectsAPI.getUpcomingEvents(),
         announcementsAPI.getStats(),
+        projectsAPI.getProjectStats(),
       ]);
 
       const activeRequests = documentsRes.status === 'fulfilled' 
@@ -50,10 +52,15 @@ const DashboardScreen = ({ navigation }) => {
         ? eventsRes.value.length
         : 0;
 
+      const totalProjects = projectsStatsRes.status === 'fulfilled'
+        ? (projectsStatsRes.value?.total_projects ?? 0)
+        : 0;
+
       setDashboardData({
         activeRequests,
         announcements,
         upcomingEvents,
+        totalProjects,
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -104,7 +111,8 @@ const DashboardScreen = ({ navigation }) => {
   const summaryCards = [
     { title: 'Active Requests', count: dashboardData.activeRequests.toString(), color: '#3b82f6' },
     { title: 'Announcements', count: dashboardData.announcements.toString(), color: '#10b981' },
-    { title: 'Upcoming Events', count: dashboardData.upcomingEvents.toString(), color: '#f59e0b' },
+    { title: 'Events', count: dashboardData.upcomingEvents.toString(), color: '#f59e0b' },
+    { title: 'Projects', count: dashboardData.totalProjects.toString(), color: '#8b5cf6' },
   ];
 
   const getGreeting = () => {
@@ -146,8 +154,19 @@ const DashboardScreen = ({ navigation }) => {
       >
         <View style={styles.statsSection}>
           <View style={styles.statsGrid}>
-            {summaryCards.map((card, index) => (
+            {summaryCards.slice(0, 2).map((card, index) => (
               <View key={index} style={[styles.statCard, { backgroundColor: card.color }]}>
+                <View style={styles.statCardContent}>
+                  <Text style={styles.statCount}>{card.count}</Text>
+                  <Text style={styles.statTitle}>{card.title}</Text>
+                </View>
+                <View style={styles.statCardCorner} />
+              </View>
+            ))}
+          </View>
+          <View style={styles.statsGrid}>
+            {summaryCards.slice(2).map((card, index) => (
+              <View key={index + 2} style={[styles.statCard, { backgroundColor: card.color }]}>
                 <View style={styles.statCardContent}>
                   <Text style={styles.statCount}>{card.count}</Text>
                   <Text style={styles.statTitle}>{card.title}</Text>
@@ -231,6 +250,29 @@ const DashboardScreen = ({ navigation }) => {
               <Text style={[styles.serviceTitle, styles.serviceTitleSmall]} numberOfLines={1}>
                 Announcements
               </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7} onPress={() => navigation.navigate('Events')}>
+              <View style={[styles.serviceIcon, { backgroundColor: '#FEF3C7' }]}>
+                <View style={styles.calendarIconWrapper}>
+                  <View style={styles.calendarIconBorder} />
+                  <View style={styles.calendarIconLine1} />
+                  <View style={styles.calendarIconLine2} />
+                  <View style={styles.calendarIconDot1} />
+                  <View style={styles.calendarIconDot2} />
+                  <View style={styles.calendarIconDot3} />
+                </View>
+              </View>
+              <Text style={styles.serviceTitle}>Events</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7} onPress={() => navigation.navigate('Projects')}>
+              <View style={[styles.serviceIcon, { backgroundColor: '#E9D5FF' }]}>
+                <View style={styles.projectIconWrapper}>
+                  <View style={styles.projectIconBuilding} />
+                </View>
+              </View>
+              <Text style={styles.serviceTitle}>Projects</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.serviceCard} activeOpacity={0.7} onPress={handleLogout}>
@@ -557,6 +599,76 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B5CF6',
     position: 'absolute',
     top: 12,
+  },
+  calendarIconWrapper: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  calendarIconBorder: {
+    width: 18,
+    height: 18,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    borderRadius: 2,
+    position: 'absolute',
+  },
+  calendarIconLine1: {
+    width: 18,
+    height: 1,
+    backgroundColor: '#F59E0B',
+    position: 'absolute',
+    top: 4,
+  },
+  calendarIconLine2: {
+    width: 18,
+    height: 1,
+    backgroundColor: '#F59E0B',
+    position: 'absolute',
+    top: 8,
+  },
+  calendarIconDot1: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#F59E0B',
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+  },
+  calendarIconDot2: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#F59E0B',
+    position: 'absolute',
+    bottom: 4,
+    left: 9,
+  },
+  calendarIconDot3: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#F59E0B',
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+  },
+  projectIconWrapper: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  projectIconBuilding: {
+    width: 18,
+    height: 18,
+    borderWidth: 2,
+    borderColor: '#8B5CF6',
+    borderRadius: 3,
+    position: 'relative',
   },
   logoutIconWrapper: {
     width: 24,

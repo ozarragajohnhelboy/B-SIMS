@@ -13,6 +13,8 @@ import ProfileSettingsScreen from './src/screens/ProfileSettingsScreen';
 import BarangayIDScreen from './src/screens/BarangayIDScreen';
 import IncidentsScreen from './src/screens/IncidentsScreen';
 import AnnouncementsScreen from './src/screens/AnnouncementsScreen';
+import EventsScreen from './src/screens/EventsScreen';
+import ProjectsScreen from './src/screens/ProjectsScreen';
 import DocumentRequestsScreen from './src/screens/DocumentRequestsScreen';
 import DocumentRequestScreen from './src/screens/DocumentRequestScreen';
 import PaymentScreen from './src/screens/PaymentScreen';
@@ -67,6 +69,8 @@ const AppNavigator = () => {
                 <Stack.Screen name="BarangayID" component={BarangayIDScreen} />
                 <Stack.Screen name="Complaints" component={IncidentsScreen} />
                 <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
+                <Stack.Screen name="Events" component={EventsScreen} />
+                <Stack.Screen name="Projects" component={ProjectsScreen} />
                 <Stack.Screen name="DocumentRequests" component={DocumentRequestsScreen} />
                 <Stack.Screen name="DocumentRequest" component={DocumentRequestScreen} />
                 <Stack.Screen name="Payment" component={PaymentScreen} />
